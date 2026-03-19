@@ -530,6 +530,11 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
         .insert({ bucket_id: bucketId, child_id: childId, amount, type: 'gift', description, status: 'completed' });
 
       if (error) throw error;
+
+      await get().fetchAllFamilyBuckets();
+      await get().fetchChildBuckets(childId);
+      await get().fetchChildTransactions(childId);
+
       set({ loading: false });
       return { error: null };
     } catch (e: any) {
@@ -605,6 +610,10 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       }
 
       await get().fetchChores();
+      await get().fetchAllFamilyBuckets();
+      await get().fetchChildBuckets(childId);
+      await get().fetchChildTransactions(childId);
+
       set({ loading: false });
       return { error: null };
     } catch (e: any) {

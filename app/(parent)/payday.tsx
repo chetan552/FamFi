@@ -25,6 +25,8 @@ export default function PaydayScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [paid, setPaid] = useState<Set<string>>(new Set());
 
+  const payDeps = childrenWithPay.map(c => `${c.child.id}-${c.total}`).join('|');
+
   useEffect(() => {
     if (bucketTemplates.length === 0) return;
     const initialDists: Record<string, Record<string, string>> = {};
@@ -37,7 +39,7 @@ export default function PaydayScreen() {
       initialDists[child.id] = childDist;
     });
     setDistributions(initialDists);
-  }, [chores.length, bucketTemplates.length]);
+  }, [payDeps, bucketTemplates.length]);
 
   const handleUpdateAmount = (childId: string, templateId: string, value: string) => {
     setDistributions(prev => ({ ...prev, [childId]: { ...prev[childId], [templateId]: value } }));

@@ -531,8 +531,8 @@ const styles = StyleSheet.create({
   },
   childCard: {
     borderRadius: 14,
-    marginLeft: spacing.sm,
-    marginRight: spacing.sm,
+    marginLeft: spacing.xs,
+    marginRight: spacing.xs,
   },
   childCardContent: {
     flexDirection: "row",
