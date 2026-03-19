@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Fam-Fi-App",
-    "slug": "Fam-Fi-App",
+    "name": "FamFi",
+    "slug": "famfi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -38,7 +38,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

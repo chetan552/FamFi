@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+.env
+app_audit.md
+walkthrough.md
+walkthrough1.md
