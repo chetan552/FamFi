@@ -518,6 +518,13 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   },
 
   markChoreDone: async (id: string) => {
+    const parent = get().members.find(m => m.role === 'parent' && (m as any).expo_push_token);
+    const profile = useAuthStore.getState().profile;
+    if (parent && (parent as any).expo_push_token && profile?.name) {
+      import('@/lib/notifications').then(({ sendPushNotification }) => {
+        sendPushNotification((parent as any).expo_push_token, 'Chore Done! ✅', `${profile.name} just finished a chore!`);
+      });
+    }
     return get().updateChoreStatus(id, 'done');
   },
 
@@ -613,6 +620,13 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       await get().fetchAllFamilyBuckets();
       await get().fetchChildBuckets(childId);
       await get().fetchChildTransactions(childId);
+
+      const child = get().children.find(c => c.id === childId);
+      if (child && (child as any).expo_push_token) {
+        import('@/lib/notifications').then(({ sendPushNotification }) => {
+          sendPushNotification((child as any).expo_push_token, 'Payday! 💸', `You just received pocket money!`);
+        });
+      }
 
       set({ loading: false });
       return { error: null };

@@ -291,6 +291,31 @@ export default function SettingsScreen() {
         </Card>
       </View>
 
+      {/* Legal */}
+      <View style={styles.section}>
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Legal
+        </Text>
+        <Card mode="outlined">
+          <List.Item
+            title="Terms of Service"
+            left={(props) => <List.Icon {...props} icon="file-document-outline" />}
+            onPress={() => {
+              import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfibank.app/terms'));
+            }}
+            right={(props) => <List.Icon {...props} icon="open-in-new" />}
+          />
+          <List.Item
+            title="Privacy Policy"
+            left={(props) => <List.Icon {...props} icon="shield-check-outline" />}
+            onPress={() => {
+              import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfibank.app/privacy'));
+            }}
+            right={(props) => <List.Icon {...props} icon="open-in-new" />}
+          />
+        </Card>
+      </View>
+
       {/* Profile Edit Modal */}
       <Portal>
         <Modal

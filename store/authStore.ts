@@ -17,6 +17,7 @@ interface AuthState {
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (password: string) => Promise<{ error: string | null }>;
   deleteAccount: () => Promise<{ error: string | null }>;
+  savePushToken: (token: string) => Promise<{ error: string | null }>;
   fetchChildrenByInvite: (inviteCode: string) => Promise<{ data: User[] | null; error: string | null }>;
   childLogin: (inviteCode: string, childId: string) => Promise<{ error: string | null }>;
   fetchProfile: () => Promise<void>;
@@ -171,6 +172,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false });
       return { error: 'An unexpected error occurred.' };
     }
+  },
+
+  savePushToken: async (token: string) => {
+    const { authUser, profile } = get();
+    if (!authUser || !profile) return { error: 'Not authenticated' };
+    
+    // Prevent redundant network requests if it's already saved locally
+    if ((profile as any).expo_push_token === token) return { error: null };
+
+    const { error } = await supabase
+      .from('users')
+      .update({ expo_push_token: token } as any)
+      .eq('id', profile.id);
+
+    if (!error) {
+      set({ profile: { ...profile, expo_push_token: token } as any });
+      return { error: null };
+    }
+    return { error: error.message };
   },
 
   fetchChildrenByInvite: async (inviteCode: string) => {

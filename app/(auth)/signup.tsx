@@ -126,6 +126,23 @@ export default function SignUpScreen() {
             Create Account
           </Button>
 
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center', marginTop: spacing.sm, paddingHorizontal: spacing.md, lineHeight: 18 }}>
+            By signing up, you agree to our{' '}
+            <Text 
+              style={{ color: theme.colors.primary, fontWeight: '600' }} 
+              onPress={() => {
+                import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfi.app/terms'));
+              }}
+            >Terms of Service</Text>
+            {' '}and{' '}
+            <Text 
+              style={{ color: theme.colors.primary, fontWeight: '600' }} 
+              onPress={() => {
+                import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfi.app/privacy'));
+              }}
+            >Privacy Policy</Text>.
+          </Text>
+
           <View style={styles.footer}>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
               Already have an account?{' '}

@@ -26,10 +26,20 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   document.head.appendChild(style);
 }
 
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, initialized, profile } = useAuthStore();
+  const { expoPushToken } = usePushNotifications();
   const segments = useSegments();
   const router = useRouter();
+
+  // Sync push token whenever authenticated state or token loads
+  useEffect(() => {
+    if (initialized && profile && expoPushToken && (profile as any).expo_push_token !== expoPushToken) {
+      useAuthStore.getState().savePushToken(expoPushToken);
+    }
+  }, [initialized, profile, expoPushToken]);
 
   useEffect(() => {
     if (!initialized) return;
