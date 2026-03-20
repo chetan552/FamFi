@@ -48,8 +48,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     } else if (session && profile?.family_id) {
       if (inAuthGroup) {
-        // Authenticated parent in the auth group → go to parent dashboard
-        router.replace('/(parent)/dashboard');
+        // Authenticated user in the auth group → go to their respective dashboard
+        if (profile.role === 'child') {
+          router.replace('/(child)/dashboard');
+        } else {
+          router.replace('/(parent)/dashboard');
+        }
       } else if (inChildGroup) {
         // On a browser hard-refresh expo-router can resolve /dashboard to the
         // (child) group instead of (parent) because (child) sorts first.

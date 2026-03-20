@@ -220,9 +220,33 @@ export default function SettingsScreen() {
           <List.Item
             title="Sign Out"
             left={(props) => (
-              <List.Icon {...props} icon="logout" color={theme.colors.error} />
+              <List.Icon {...props} icon="logout" color={theme.colors.onSurface} />
             )}
             onPress={signOut}
+          />
+          <List.Item
+            title="Delete Account"
+            titleStyle={{ color: theme.colors.error }}
+            left={(props) => (
+              <List.Icon {...props} icon="delete" color={theme.colors.error} />
+            )}
+            onPress={() => {
+              Alert.alert(
+                "Delete Account",
+                "Are you absolutely sure? This will instantly delete your family, all members, and all data. This action cannot be undone.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Delete My Account",
+                    style: "destructive",
+                    onPress: async () => {
+                      const { error } = await useAuthStore.getState().deleteAccount();
+                      if (error) showError(error);
+                    },
+                  },
+                ]
+              );
+            }}
           />
         </Card>
       </View>

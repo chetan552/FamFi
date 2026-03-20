@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, TextInput, Button, HelperText, useTheme } from 'react-native-paper';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import ScreenContainer from '@/components/ui/ScreenContainer';
 import { useAuthStore } from '@/store/authStore';
 import { spacing } from '@/constants/theme';
@@ -85,6 +85,17 @@ export default function LoginScreen() {
           )}
 
           <Button
+            mode="text"
+            onPress={() => router.push('/(auth)/forgot-password')}
+            textColor={theme.colors.primary}
+            style={{ alignSelf: 'flex-end', marginTop: -spacing.sm }}
+            labelStyle={{ fontSize: 13 }}
+            compact
+          >
+            Forgot Password?
+          </Button>
+
+          <Button
             mode="contained"
             onPress={handleLogin}
             loading={loading}
@@ -108,6 +119,18 @@ export default function LoginScreen() {
                 Sign Up
               </Text>
             </Link>
+          </View>
+
+          <View style={[styles.footer, { marginTop: spacing.md }]}>
+            <Button
+              mode="contained-tonal"
+              onPress={() => router.push('/(auth)/child-login')}
+              icon="face-man-profile"
+              style={{ borderRadius: 12, width: '100%' }}
+              contentStyle={{ paddingVertical: 6 }}
+            >
+              I'm a Kid
+            </Button>
           </View>
         </View>
       </KeyboardAvoidingView>
