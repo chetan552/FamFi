@@ -69,8 +69,10 @@ export default function BucketTemplatesScreen() {
     if (result.error) {
       setError(result.error);
     } else {
-      showSuccess(editingTemplate ? 'Bucket updated!' : 'Bucket created!');
       setModalVisible(false);
+      setTimeout(() => {
+        showSuccess(editingTemplate ? 'Bucket updated!' : 'Bucket created!');
+      }, 100);
     }
   };
 

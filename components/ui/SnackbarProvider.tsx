@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Snackbar } from 'react-native-paper';
+import { Snackbar, Portal } from 'react-native-paper';
 
 type SnackbarType = 'success' | 'error' | 'info';
 
@@ -49,15 +49,17 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
   return (
     <SnackbarContext.Provider value={{ showSuccess, showError, showInfo }}>
       {children}
-      <Snackbar
-        visible={state.visible}
-        onDismiss={dismiss}
-        duration={3000}
-        style={{ backgroundColor: getColor() }}
-        action={{ label: '✕', onPress: dismiss, labelStyle: { color: '#fff' } }}
-      >
-        {state.message}
-      </Snackbar>
+      <Portal>
+        <Snackbar
+          visible={state.visible}
+          onDismiss={dismiss}
+          duration={3000}
+          style={{ backgroundColor: getColor() }}
+          action={{ label: '✕', onPress: dismiss, labelStyle: { color: '#fff' } }}
+        >
+          {state.message}
+        </Snackbar>
+      </Portal>
     </SnackbarContext.Provider>
   );
 }

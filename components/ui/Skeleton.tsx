@@ -16,14 +16,14 @@ export function SkeletonBox({ width = '100%', height = 20, borderRadius = 8, sty
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0, duration: 900, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 1200, useNativeDriver: true }),
       ])
     ).start();
   }, []);
 
-  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.7] });
-  const baseColor = theme.dark ? '#ffffff' : '#000000';
+  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.15, 0.4] });
+  const baseColor = theme.dark ? theme.colors.onSurface : theme.colors.onSurfaceVariant;
 
   return (
     <Animated.View

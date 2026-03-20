@@ -60,8 +60,10 @@ export default function AddChildrenScreen() {
     if (result.error) {
       setError(result.error);
     } else {
-      showSuccess(editingChild ? `${childName} updated!` : `${childName} added!`);
       setModalVisible(false);
+      setTimeout(() => {
+        showSuccess(editingChild ? `${childName} updated!` : `${childName} added!`);
+      }, 100);
     }
   };
 

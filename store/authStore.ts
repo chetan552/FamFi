@@ -123,7 +123,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .from('users')
       .select('*')
       .eq('auth_id', authUser.id)
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       set({ profile: data as User });

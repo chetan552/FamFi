@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import {
   Button,
   Card,
@@ -19,6 +20,7 @@ import {
 
 export default function DashboardScreen() {
   const theme = useTheme();
+  const { isDesktop, gridColumns } = useBreakpoint();
   const { profile } = useAuthStore();
   const {
     family,
@@ -38,7 +40,7 @@ export default function DashboardScreen() {
     await fetchFamily();
     await fetchAllFamilyBuckets();
     setInitialLoading(false);
-  }, []);
+  }, [fetchFamily, fetchAllFamilyBuckets]);
 
   // Depend on profile.family_id instead of [] so that on browser refresh —
   // where initialize() sets initialized:true before fetchProfile() completes —
@@ -47,14 +49,14 @@ export default function DashboardScreen() {
     if (profile?.family_id) {
       loadAll();
     }
-  }, [profile?.family_id]);
+  }, [profile?.family_id, loadAll]);
 
   // After children load, fetch all buckets
   useEffect(() => {
     if (children.length > 0) {
       fetchAllFamilyBuckets();
     }
-  }, [children.length]);
+  }, [children.length, fetchAllFamilyBuckets]);
 
   const getChildBalance = (childId: string) => {
     return allFamilyBuckets
@@ -247,15 +249,18 @@ export default function DashboardScreen() {
           </Surface>
         ) : (
           <FlatList
+            numColumns={isDesktop ? 2 : 1}
+            key={isDesktop ? 'desktop' : 'mobile'} 
+            columnWrapperStyle={isDesktop ? { gap: spacing.sm } : undefined}
             data={children}
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
-            contentContainerStyle={{ paddingVertical: spacing.xs }}
+            contentContainerStyle={{ paddingVertical: spacing.xs, gap: isDesktop ? spacing.sm : 0 }}
             renderItem={({ item }) => {
               const balance = getChildBalance(item.id);
               return (
                 <Card
-                  style={styles.childCard}
+                  style={[styles.childCard, isDesktop && { flex: 1, marginHorizontal: 0 }]}
                   mode="elevated"
                   elevation={2}
                   onPress={() => router.push(`/(parent)/child/${item.id}`)}
@@ -460,7 +465,7 @@ export default function DashboardScreen() {
           <Card
             style={styles.actionCard}
             mode="elevated"
-            onPress={() => router.push("/(parent)/withdraw" as any)}
+            onPress={() => router.push("/(parent)/withdraw")}
           >
             <Card.Content style={styles.actionContent}>
               <MaterialCommunityIcons
@@ -479,7 +484,7 @@ export default function DashboardScreen() {
           <Card
             style={styles.actionCard}
             mode="elevated"
-            onPress={() => router.push("/(parent)/interest-settings" as any)}
+            onPress={() => router.push("/(parent)/interest-settings")}
           >
             <Card.Content style={styles.actionContent}>
               <MaterialCommunityIcons
@@ -562,7 +567,7 @@ const styles = StyleSheet.create({
   },
   bucketDot: { width: 8, height: 8, borderRadius: 4, marginRight: spacing.sm },
   actionsGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  actionCard: { width: "47%", borderRadius: 16 },
+  actionCard: { width: 100, flexGrow: 1, borderRadius: 16 },
   actionContent: {
     alignItems: "center",
     paddingVertical: spacing.md,

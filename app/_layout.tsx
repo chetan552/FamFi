@@ -8,6 +8,23 @@ import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { SnackbarProvider } from '@/components/ui/SnackbarProvider';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { Platform } from 'react-native';
+
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: inherit;
+      transition: background-color 5000s ease-in-out 0s;
+      box-shadow: inset 0 0 20px 20px transparent;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, initialized, profile } = useAuthStore();
