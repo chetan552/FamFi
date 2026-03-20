@@ -94,3 +94,48 @@ Follow the terminal instructions to open the app on iOS (i) or Android (a).
 - `store/`: Zustand stores for Auth, Family, and Settings
 - `constants/`: Theme, spacing, and other global constants
 - `supabase/`: Database migrations and snippets
+
+## Deployment
+
+To make FamFi available to the public, you need to deploy both the Supabase Backend and the Expo Frontend.
+
+### 1. Deploying the Backend (Supabase)
+1. **Create a Cloud Project:** Go to [Supabase.com](https://supabase.com) and create a new project.
+2. **Link your Local Project:** In your terminal, link your codebase using the Reference ID:
+   ```bash
+   npx supabase link --project-ref <your-project-ref-id>
+   ```
+3. **Push to Production:** Push all tables, policies, and RPC functions directly to the cloud:
+   ```bash
+   npx supabase db push
+   ```
+4. **Configure Cloud Settings:** Go to your Supabase Cloud Dashboard and:
+   - Turn **Anonymous Sign-ins ON** (required for Child Login).
+   - Input your Google OAuth Credentials (for Parent login).
+   - Update your `.env` file with your *Production* `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+
+### 2. Deploying the Frontend (Expo)
+Because FamFi is built with Expo Router, you can publish this single codebase as an iOS App, an Android App, and a Website.
+
+#### A. Releasing the Mobile Apps (iOS & Android)
+1. **Set up EAS:** Install the Expo Application Services (EAS) CLI:
+   ```bash
+   npm install -g eas-cli
+   eas login
+   ```
+2. **Build the Binaries:** Generate the `.ipa` (Apple) and `.aab` (Android) files:
+   ```bash
+   eas build --platform all
+   ```
+3. **Submit to the Stores:** Send the builds to Apple App Store Connect and Google Play Console:
+   ```bash
+   eas submit --platform all
+   ```
+
+#### B. Releasing the Web Version
+1. **Generate Static Files:**
+   ```bash
+   npx expo export
+   ```
+   This compiles a highly optimized production website inside a new `/dist` folder.
+2. **Host the Website:** Drag and drop that `/dist` folder into a hosting provider like **Vercel** or **Netlify** for instant free deployment.

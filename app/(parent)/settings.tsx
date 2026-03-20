@@ -48,6 +48,25 @@ export default function SettingsScreen() {
   const [familyModalVisible, setFamilyModalVisible] = useState(false);
   const [editFamilyName, setEditFamilyName] = useState(family?.name ?? "");
 
+  // Password change modal
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      showError("Password must be at least 6 characters.");
+      return;
+    }
+    const { error } = await useAuthStore.getState().updatePassword(newPassword);
+    if (error) {
+      showError(error);
+    } else {
+      showSuccess("Password updated successfully!");
+      setPasswordModalVisible(false);
+      setNewPassword("");
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!editName.trim()) return;
     const { error } = await updateProfile(editName.trim(), editEmoji);
@@ -218,6 +237,13 @@ export default function SettingsScreen() {
         </Text>
         <Card mode="outlined">
           <List.Item
+            title="Change Password"
+            left={(props) => (
+              <List.Icon {...props} icon="lock-reset" color={theme.colors.onSurface} />
+            )}
+            onPress={() => setPasswordModalVisible(true)}
+          />
+          <List.Item
             title="Sign Out"
             left={(props) => (
               <List.Icon {...props} icon="logout" color={theme.colors.onSurface} />
@@ -341,6 +367,45 @@ export default function SettingsScreen() {
               loading={familyLoading}
             >
               Save
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
+
+      {/* Password Change Modal */}
+      <Portal>
+        <Modal
+          visible={passwordModalVisible}
+          onDismiss={() => setPasswordModalVisible(false)}
+          contentContainerStyle={[
+            styles.modal,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          <Text
+            variant="titleLarge"
+            style={{ fontWeight: "700", marginBottom: spacing.md }}
+          >
+            Change Password
+          </Text>
+          <TextInput
+            label="New Password"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            mode="outlined"
+            secureTextEntry
+            left={<TextInput.Icon icon="lock" />}
+            style={{ marginBottom: spacing.md }}
+            textColor={theme.colors.onSurface}
+          />
+          <View style={styles.modalActions}>
+            <Button onPress={() => setPasswordModalVisible(false)}>Cancel</Button>
+            <Button
+              mode="contained"
+              onPress={handleUpdatePassword}
+              loading={authLoading}
+            >
+              Update
             </Button>
           </View>
         </Modal>

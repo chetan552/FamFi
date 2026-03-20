@@ -1,13 +1,13 @@
 import ScreenContainer from "@/components/ui/ScreenContainer";
 import { ChildCardSkeleton } from "@/components/ui/Skeleton";
 import { spacing } from "@/constants/theme";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { useAuthStore } from "@/store/authStore";
 import { useFamilyStore } from "@/store/familyStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
-import { useBreakpoint } from "@/hooks/useBreakpoint";
 import {
   Button,
   Card,
@@ -250,7 +250,7 @@ export default function DashboardScreen() {
         ) : (
           <FlatList
             numColumns={isDesktop ? 2 : 1}
-            key={isDesktop ? 'desktop' : 'mobile'} 
+            key={isDesktop ? 'desktop' : 'mobile'}
             columnWrapperStyle={isDesktop ? { gap: spacing.sm } : undefined}
             data={children}
             keyExtractor={(item) => item.id}

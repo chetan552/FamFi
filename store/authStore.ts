@@ -15,6 +15,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
   deleteAccount: () => Promise<{ error: string | null }>;
   fetchChildrenByInvite: (inviteCode: string) => Promise<{ data: User[] | null; error: string | null }>;
   childLogin: (inviteCode: string, childId: string) => Promise<{ error: string | null }>;
@@ -123,6 +124,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true });
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        set({ loading: false });
+        return { error: error.message };
+      }
+      set({ loading: false });
+      return { error: null };
+    } catch (error) {
+      set({ loading: false });
+      return { error: 'An unexpected error occurred.' };
+    }
+  },
+
+  updatePassword: async (password: string) => {
+    set({ loading: true });
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         set({ loading: false });
         return { error: error.message };
