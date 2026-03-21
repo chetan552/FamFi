@@ -4,10 +4,12 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ParentLayout() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Sidebar/desktop mode on web only
   const isDesktop = Platform.OS === "web" && width >= breakpoints.md;
@@ -36,8 +38,8 @@ export default function ParentLayout() {
                   backgroundColor: theme.colors.surface,
                   borderTopColor: theme.colors.outlineVariant,
                   borderTopWidth: 1,
-                  height: 68,
-                  paddingBottom: 8,
+                  height: 60 + insets.bottom,
+                  paddingBottom: Math.max(8, insets.bottom),
                   paddingTop: 6,
                 },
             tabBarLabelStyle: {
