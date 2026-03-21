@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 14 },
   valueContainer: { backgroundColor: 'rgba(43, 158, 179, 0.1)', paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8, marginLeft: spacing.sm },
   valueText: { fontWeight: '800' },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs, flexWrap: 'wrap', gap: spacing.sm },
   chipGroup: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center', flexWrap: 'wrap' },
   statusChip: { height: 28 },
   recurringChip: { height: 28, backgroundColor: '#7C4DFF15' },

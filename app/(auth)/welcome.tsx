@@ -66,7 +66,12 @@ export default function WelcomeScreen() {
         <View style={[styles.imageContainer, { backgroundColor: theme.colors.primaryContainer }]}>
           <Text style={styles.emoji}>{item.emoji}</Text>
         </View>
-        <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.primary }]}>
+        <Text 
+          variant="headlineMedium" 
+          style={[styles.title, { color: theme.colors.primary }]}
+          adjustsFontSizeToFit
+          numberOfLines={2}
+        >
           {item.title}
         </Text>
         <Text variant="bodyLarge" style={[styles.description, { color: theme.colors.onSurfaceVariant }]}>
@@ -80,6 +85,7 @@ export default function WelcomeScreen() {
     <ScreenContainer centered scrollable={false}>
       <View style={styles.container}>
         <FlatList
+          style={{ flex: 1 }}
           ref={flatListRef}
           data={ONBOARDING_DATA}
           renderItem={renderItem}

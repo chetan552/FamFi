@@ -181,7 +181,7 @@ export default function ChildProfileScreen() {
           ) : (
             <Card mode="elevated">
               {transactions.map((tx, index) => (
-                <React.Fragment key={tx.id}>
+                <View key={tx.id}>
                   <List.Item
                     title={tx.description || tx.type.replace('_', ' ')}
                     description={new Date(tx.created_at).toLocaleDateString()}
@@ -202,7 +202,7 @@ export default function ChildProfileScreen() {
                     )}
                   />
                   {index < transactions.length - 1 && <Divider />}
-                </React.Fragment>
+                </View>
               ))}
             </Card>
           )}
