@@ -49,8 +49,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inChildGroup  = segments[0] === '(child)';
 
     if (!session) {
-      if (!inAuthGroup) {
-        router.replace('/(auth)/login');
+      if (!inAuthGroup && segments.length > 0) {
+        router.replace('/');
       }
     } else if (profile && !profile.family_id) {
       if ((segments as string[])[1] !== 'family-setup') {
@@ -90,7 +90,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   if (session && !profile) return null;     // ← profile still loading, wait
 
   const inAuthGroup = segments[0] === '(auth)';
-  if (!session && !inAuthGroup) return null;
+  // Cast segments to string[] to resolve Expo router type inferences
+  const isRoot = (segments as string[]).length === 0;
+  
+  // If unauthenticated, only block rendering if we are NOT at the root and NOT in auth group.
+  // The root path (index.tsx) must be allowed to render so it can redirect users!
+  if (!session && !inAuthGroup && !isRoot) return null;
   if (session && profile?.family_id && inAuthGroup) return null;
 
   return <>{children}</>;

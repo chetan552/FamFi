@@ -1,9 +1,11 @@
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function Index() {
   const { initialized, session, profile } = useAuthStore();
+  const { hasSeenOnboarding } = useSettingsStore();
 
   if (!initialized) {
     return (
@@ -14,6 +16,7 @@ export default function Index() {
   }
 
   if (!session) {
+    if (!hasSeenOnboarding) return <Redirect href="/(auth)/welcome" />;
     return <Redirect href="/(auth)/login" />;
   }
 

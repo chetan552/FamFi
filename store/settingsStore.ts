@@ -7,6 +7,8 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 interface SettingsState {
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
+  hasSeenOnboarding: boolean;
+  setHasSeenOnboarding: (value: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -14,6 +16,8 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       themeMode: 'system',
       setThemeMode: (mode) => set({ themeMode: mode }),
+      hasSeenOnboarding: false,
+      setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
     }),
     {
       name: 'fam-fi-settings',
