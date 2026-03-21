@@ -60,11 +60,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       if (inAuthGroup) {
         // Authenticated user in the auth group → go to their respective dashboard
         if (profile.role === 'child') {
-          router.replace('/(child)/dashboard');
+          router.replace({ pathname: '/(child)/dashboard', params: { id: profile.id } });
         } else {
           router.replace('/(parent)/dashboard');
         }
-      } else if (inChildGroup) {
+      } else if (profile.role === 'child' && !inChildGroup) {
+        // Securely lock children into the (child) route group
+        router.replace({ pathname: '/(child)/dashboard', params: { id: profile.id } });
+      } else if (inChildGroup && profile.role === 'parent') {
         // On a browser hard-refresh expo-router can resolve /dashboard to the
         // (child) group instead of (parent) because (child) sorts first.
         // If there is no ?id search param the child dashboard will also redirect,
@@ -107,6 +110,22 @@ export default function RootLayout() {
 
   useEffect(() => {
     initialize();
+
+    // Fix Chrome autofill background/text color issues on Web Dark Mode
+    if (typeof document !== 'undefined') {
+      const style = document.createElement('style');
+      style.textContent = `
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+          -webkit-text-fill-color: inherit !important;
+          transition: background-color 5000s ease-in-out 0s;
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }, []);
 
   const isDark = theme.dark;

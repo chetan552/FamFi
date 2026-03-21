@@ -65,7 +65,6 @@ export default function SignUpScreen() {
             left={<TextInput.Icon icon="account" />}
             style={styles.input}
             autoCapitalize="words"
-            textColor={theme.colors.onSurface}
           />
 
           <TextInput
@@ -77,7 +76,6 @@ export default function SignUpScreen() {
             style={styles.input}
             keyboardType="email-address"
             autoCapitalize="none"
-            textColor={theme.colors.onSurface}
           />
 
           <TextInput
@@ -94,7 +92,6 @@ export default function SignUpScreen() {
             }
             secureTextEntry={!showPassword}
             style={styles.input}
-            textColor={theme.colors.onSurface}
           />
 
           <TextInput
@@ -105,7 +102,6 @@ export default function SignUpScreen() {
             left={<TextInput.Icon icon="lock-check" />}
             secureTextEntry={!showPassword}
             style={styles.input}
-            textColor={theme.colors.onSurface}
           />
 
           {error && (
@@ -131,14 +127,14 @@ export default function SignUpScreen() {
             <Text 
               style={{ color: theme.colors.primary, fontWeight: '600' }} 
               onPress={() => {
-                import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfi.app/terms'));
+                import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfibank.app/terms'));
               }}
             >Terms of Service</Text>
             {' '}and{' '}
             <Text 
               style={{ color: theme.colors.primary, fontWeight: '600' }} 
               onPress={() => {
-                import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfi.app/privacy'));
+                import('expo-web-browser').then(wb => wb.openBrowserAsync('https://famfibank.app/privacy'));
               }}
             >Privacy Policy</Text>.
           </Text>

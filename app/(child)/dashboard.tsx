@@ -13,7 +13,7 @@ export default function ChildDashboardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
   const { showSuccess, showError } = useSnackbar();
-  const { session, initialized } = useAuthStore();
+  const { session, initialized, signOut } = useAuthStore();
   const {
     children,
     buckets,
@@ -31,12 +31,15 @@ export default function ChildDashboardScreen() {
 
   const child = children.find(c => c.id === id);
 
-  // Guard 1: no `id` param means expo-router resolved the wrong group on
-  // a browser hard-refresh (/dashboard is shared between both groups).
-  // Redirect to the parent dashboard immediately.
+  // Guard 1: Handle missing `id` param
   useEffect(() => {
     if (initialized && !id) {
-      router.replace('/(parent)/dashboard');
+      const currentProfile = useAuthStore.getState().profile;
+      if (currentProfile?.role === 'child') {
+        router.replace({ pathname: '/(child)/dashboard', params: { id: currentProfile.id } });
+      } else {
+        router.replace('/(parent)/dashboard');
+      }
     }
   }, [initialized, id]);
 
@@ -120,19 +123,19 @@ export default function ChildDashboardScreen() {
       <Stack.Screen options={{
         title: `${child.name}'s Bank`,
         headerLeft: () => (
-          <IconButton icon="account-switch" onPress={() => router.replace('/(parent)/dashboard')} />
+          <IconButton icon="logout" onPress={signOut} />
         )
       }} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Big Balance Header */}
-        <Card style={styles.balanceCard} mode="elevated">
+        <Card style={[styles.balanceCard, { backgroundColor: theme.colors.primaryContainer }]} mode="elevated">
           <Card.Content style={styles.balanceContent}>
             <Text style={styles.bigEmoji}>{child.avatar_emoji}</Text>
-            <Text variant="titleLarge" style={styles.balanceLabel}>
+            <Text variant="titleLarge" style={[styles.balanceLabel, { color: theme.colors.onPrimaryContainer }]}>
               {child.name}'s TOTAL SAVINGS
             </Text>
-            <Text variant="displayMedium" style={styles.balanceAmount}>
+            <Text variant="displayMedium" style={[styles.balanceAmount, { color: theme.colors.onPrimaryContainer }]}>
               ${totalBalance.toFixed(2)}
             </Text>
           </Card.Content>
@@ -187,11 +190,11 @@ export default function ChildDashboardScreen() {
             </Card>
           ) : (
             myChores.map(chore => (
-              <Card key={chore.id} style={styles.choreCard} mode="elevated">
+              <Card key={chore.id} style={[styles.choreCard, { backgroundColor: theme.colors.secondaryContainer }]} mode="elevated">
                 <Card.Content style={styles.choreContent}>
                   <View style={{ flex: 1 }}>
-                    <Text variant="titleLarge" style={{ fontWeight: '700' }}>{chore.title}</Text>
-                    <Text variant="bodyLarge" style={{ color: '#4CAF50', fontWeight: 'bold' }}>
+                    <Text variant="titleLarge" style={{ fontWeight: '700', color: theme.colors.onSecondaryContainer }}>{chore.title}</Text>
+                    <Text variant="bodyLarge" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                       Earn ${chore.value.toFixed(2)}
                     </Text>
                     {chore.due_date && (
@@ -275,20 +278,20 @@ export default function ChildDashboardScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: { paddingBottom: spacing.xxl },
-  balanceCard: { marginBottom: spacing.xl, marginTop: spacing.sm, borderRadius: 24, backgroundColor: '#FFE082' },
+  balanceCard: { marginBottom: spacing.xl, marginTop: spacing.sm, borderRadius: 24 },
   balanceContent: { alignItems: 'center', paddingVertical: spacing.xl },
   bigEmoji: { fontSize: 56, marginBottom: spacing.sm },
   balanceLabel: { fontWeight: '800', letterSpacing: 0.5, opacity: 0.7 },
-  balanceAmount: { fontWeight: '900', color: '#000', marginTop: 4 },
+  balanceAmount: { fontWeight: '900', marginTop: 4 },
   section: { marginBottom: spacing.xl },
   sectionTitle: { fontWeight: '800', marginBottom: spacing.md },
   bucketGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   bucketCard: { width: '47%', borderRadius: 16 },
   bucketInner: { alignItems: 'center', paddingVertical: spacing.md },
   bucketEmoji: { fontSize: 32, marginBottom: spacing.xs },
-  choreCard: { marginBottom: spacing.md, borderRadius: 16, backgroundColor: '#E8F5E9' },
+  choreCard: { marginBottom: spacing.md, borderRadius: 16 },
   choreContent: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md },
-  doneButton: { backgroundColor: '#4CAF50', borderRadius: 12 },
+  doneButton: { borderRadius: 12 },
   emptyCard: { borderStyle: 'dashed', borderRadius: 16 },
   emptyContent: { paddingVertical: spacing.xl },
   txRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },

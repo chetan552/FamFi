@@ -262,7 +262,7 @@ export default function DashboardScreen() {
                 <Card
                   style={[styles.childCard, isDesktop && { flex: 1, marginHorizontal: 0 }]}
                   mode="elevated"
-                  elevation={2}
+                  elevation={1}
                   onPress={() => router.push(`/(parent)/child/${item.id}`)}
                 >
                   <Card.Content style={styles.childCardContent}>
@@ -536,8 +536,8 @@ const styles = StyleSheet.create({
   },
   childCard: {
     borderRadius: 14,
-    marginLeft: spacing.xs,
-    marginRight: spacing.xs,
+    marginLeft: spacing.sm,
+    marginRight: spacing.sm,
   },
   childCardContent: {
     flexDirection: "row",

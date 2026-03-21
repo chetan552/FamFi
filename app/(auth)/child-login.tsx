@@ -72,7 +72,7 @@ export default function ChildLoginScreen() {
               left={<TextInput.Icon icon="link-variant" />}
               style={styles.input}
               autoCapitalize="characters"
-              textColor={theme.colors.onSurface}
+              maxLength={6}
             />
 
             {error && (

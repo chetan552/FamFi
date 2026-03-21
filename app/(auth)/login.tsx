@@ -58,7 +58,6 @@ export default function LoginScreen() {
             style={styles.input}
             keyboardType="email-address"
             autoCapitalize="none"
-            textColor={theme.colors.onSurface}
           />
 
           <TextInput
@@ -75,7 +74,6 @@ export default function LoginScreen() {
             }
             secureTextEntry={!showPassword}
             style={styles.input}
-            textColor={theme.colors.onSurface}
           />
 
           {error && (
