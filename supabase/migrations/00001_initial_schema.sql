@@ -20,7 +20,7 @@ CREATE TYPE chore_status AS ENUM ('assigned', 'done', 'approved', 'paid');
 
 -- Families
 CREATE TABLE families (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   invite_code TEXT NOT NULL UNIQUE,
   created_by UUID REFERENCES auth.users(id),
@@ -31,7 +31,7 @@ CREATE INDEX idx_families_invite_code ON families(invite_code);
 
 -- Users (parents and children)
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID REFERENCES families(id) ON DELETE CASCADE,
   auth_id UUID REFERENCES auth.users(id) UNIQUE,
   role user_role NOT NULL DEFAULT 'parent',
@@ -45,7 +45,7 @@ CREATE INDEX idx_users_auth_id ON users(auth_id);
 
 -- Bucket Templates
 CREATE TABLE bucket_templates (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID NOT NULL REFERENCES families(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   emoji TEXT NOT NULL DEFAULT '💰',
@@ -59,7 +59,7 @@ CREATE INDEX idx_bucket_templates_family_id ON bucket_templates(family_id);
 
 -- Buckets (one per child × template × month)
 CREATE TABLE buckets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   child_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   template_id UUID NOT NULL REFERENCES bucket_templates(id) ON DELETE CASCADE,
   month INT NOT NULL CHECK (month BETWEEN 1 AND 12),
@@ -72,7 +72,7 @@ CREATE INDEX idx_buckets_child_id ON buckets(child_id);
 
 -- Transactions
 CREATE TABLE transactions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   bucket_id UUID NOT NULL REFERENCES buckets(id) ON DELETE CASCADE,
   child_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   amount DECIMAL(12,2) NOT NULL,
@@ -87,7 +87,7 @@ CREATE INDEX idx_transactions_child_id ON transactions(child_id);
 
 -- Chores
 CREATE TABLE chores (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID NOT NULL REFERENCES families(id) ON DELETE CASCADE,
   assigned_to_child_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -102,7 +102,7 @@ CREATE INDEX idx_chores_child_id ON chores(assigned_to_child_id);
 
 -- Interest Settings (per family × bucket template)
 CREATE TABLE interest_settings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID NOT NULL REFERENCES families(id) ON DELETE CASCADE,
   template_id UUID NOT NULL REFERENCES bucket_templates(id) ON DELETE CASCADE,
   rate_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
