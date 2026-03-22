@@ -113,6 +113,16 @@ export async function syncTasksForFamily(
             synced++;
           }
         } else {
+          // Parse dynamic reward from notes (e.g., "Earn $5", "$1.50 for mowing")
+          let rewardValue = mapping.default_reward;
+          if (task.notes) {
+            const match = task.notes.match(/\$(\d+(?:\.\d{1,2})?)/);
+            if (match && match[1]) {
+              const parsed = parseFloat(match[1]);
+              if (!isNaN(parsed)) rewardValue = parsed;
+            }
+          }
+
           // New task — create chore
           const choreStatus = task.status === 'completed' ? 'done' : 'assigned';
           const { error: insertError } = await supabase
@@ -121,7 +131,7 @@ export async function syncTasksForFamily(
               family_id: familyId,
               assigned_to_child_id: mapping.child_id,
               title: task.title,
-              value: mapping.default_reward,
+              value: rewardValue,
               status: choreStatus,
               due_date: task.due ? task.due.split('T')[0] : null,
               source: 'google_tasks',
