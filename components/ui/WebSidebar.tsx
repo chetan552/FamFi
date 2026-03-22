@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
-import { useRouter, usePathname } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { sidebarWidth, spacing } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { usePathname, useRouter } from 'expo-router';
+import React from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 
 interface NavItem {
   label: string;
@@ -15,11 +15,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Home',     href: '/(parent)/dashboard', match: '/dashboard', icon: 'view-dashboard'  },
-  { label: 'Chores',   href: '/(parent)/chores',    match: '/chores',    icon: 'clipboard-check' },
-  { label: 'Payday',   href: '/(parent)/payday',     match: '/payday',    icon: 'cash-multiple'   },
-  { label: 'Activity', href: '/(parent)/activity',   match: '/activity',  icon: 'history'         },
-  { label: 'Settings', href: '/(parent)/settings',   match: '/settings',  icon: 'cog'             },
+  { label: 'Home', href: '/(parent)/dashboard', match: '/dashboard', icon: 'view-dashboard' },
+  { label: 'Chores', href: '/(parent)/chores', match: '/chores', icon: 'clipboard-check' },
+  { label: 'Payday', href: '/(parent)/payday', match: '/payday', icon: 'cash-multiple' },
+  { label: 'Activity', href: '/(parent)/activity', match: '/activity', icon: 'history' },
+  { label: 'Settings', href: '/(parent)/settings', match: '/settings', icon: 'cog' },
 ];
 
 /**
@@ -45,7 +45,7 @@ export function WebSidebar() {
       {/* Branding */}
       <View style={styles.brand}>
         <Text variant="headlineSmall" style={[styles.brandText, { color: theme.colors.primary }]}>
-          💰 Fam-Fi
+          💰 FamFi
         </Text>
       </View>
 
