@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text, Card, Button, useTheme, IconButton } from 'react-native-paper';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import ScreenContainer from '@/components/ui/ScreenContainer';
@@ -123,7 +124,7 @@ export default function ChildDashboardScreen() {
       <Stack.Screen options={{
         title: `${child.name}'s Bank`,
         headerLeft: () => (
-          <IconButton icon="logout" onPress={signOut} />
+          <IconButton icon="logout" onPress={async () => { await signOut(); router.replace('/(auth)/login'); }} />
         )
       }} />
 
@@ -140,6 +141,29 @@ export default function ChildDashboardScreen() {
             </Text>
           </Card.Content>
         </Card>
+
+        {/* Mentor Banner */}
+        <Pressable onPress={() => router.push(`/(child)/mentor?id=${child.id}` as any)}>
+          <Card 
+            style={[styles.mentorCard, { backgroundColor: '#6200ee15', borderColor: '#6200ee50', borderWidth: 1 }]} 
+            mode="contained"
+          >
+            <Card.Content style={styles.mentorContent}>
+              <View style={styles.mentorAvatar}>
+                <Text style={{ fontSize: 32 }}>🤖</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text variant="titleMedium" style={{ fontWeight: '800', color: theme.colors.primary }}>
+                  Talk to your Money Mentor!
+                </Text>
+                <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                  Get advice on how to save up for your goals!
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={24} color={theme.colors.primary} />
+            </Card.Content>
+          </Card>
+        </Pressable>
 
         {/* Buckets Section */}
         <View style={styles.section}>
@@ -300,5 +324,27 @@ const styles = StyleSheet.create({
   sessionExpiredSubtext: { textAlign: 'center', opacity: 0.6 },
   spendCard: { borderRadius: 16, borderStyle: 'dashed' },
   spendContent: { alignItems: 'center', paddingVertical: spacing.lg },
-  spendEmoji: { fontSize: 40, marginBottom: spacing.sm },
+  spendEmoji: {
+    fontSize: 32,
+    marginBottom: spacing.xs,
+  },
+  mentorCard: {
+    marginBottom: spacing.xl,
+    marginHorizontal: spacing.sm,
+    borderRadius: 16,
+  },
+  mentorContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  mentorAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ffffff80',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
