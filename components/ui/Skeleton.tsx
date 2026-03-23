@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
+import { View, StyleSheet, Animated, ViewStyle, Platform } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 interface SkeletonProps {
@@ -16,8 +16,8 @@ export function SkeletonBox({ width = '100%', height = 20, borderRadius = 8, sty
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 1200, useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0, duration: 1200, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 1200, useNativeDriver: Platform.OS !== 'web' }),
+        Animated.timing(anim, { toValue: 0, duration: 1200, useNativeDriver: Platform.OS !== 'web' }),
       ])
     ).start();
   }, []);

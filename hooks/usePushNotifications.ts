@@ -29,7 +29,7 @@ export function usePushNotifications() {
 async function registerForPushNotificationsAsync() {
   let token;
 
-  //if (Platform.OS === 'web') return null;
+  if (Platform.OS === 'web') return null;
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {

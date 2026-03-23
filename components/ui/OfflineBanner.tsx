@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View, Platform } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { spacing } from '@/constants/theme';
@@ -18,7 +18,7 @@ export default function OfflineBanner({ visible }: Props) {
   useEffect(() => {
     Animated.spring(translateY, {
       toValue: visible ? 0 : -60,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
       tension: 80,
       friction: 10,
     }).start();
