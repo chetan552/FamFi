@@ -15,7 +15,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
-  updatePassword: (password: string) => Promise<{ error: string | null }>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<{ error: string | null }>;
   deleteAccount: () => Promise<{ error: string | null }>;
   savePushToken: (token: string) => Promise<{ error: string | null }>;
   fetchChildrenByInvite: (inviteCode: string) => Promise<{ data: User[] | null; error: string | null }>;
@@ -137,10 +137,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  updatePassword: async (password: string) => {
+  updatePassword: async (currentPassword: string, newPassword: string) => {
     set({ loading: true });
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        set({ loading: false });
+        return { error: 'No email found for current user.' };
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        set({ loading: false });
+        return { error: 'Incorrect current password.' };
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) {
         set({ loading: false });
         return { error: error.message };

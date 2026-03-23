@@ -50,20 +50,32 @@ export default function SettingsScreen() {
 
   // Password change modal
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleUpdatePassword = async () => {
+    if (!currentPassword) {
+      showError("Please enter your current password.");
+      return;
+    }
     if (!newPassword || newPassword.length < 6) {
       showError("Password must be at least 6 characters.");
       return;
     }
-    const { error } = await useAuthStore.getState().updatePassword(newPassword);
+    if (newPassword !== confirmPassword) {
+      showError("New passwords do not match.");
+      return;
+    }
+    const { error } = await useAuthStore.getState().updatePassword(currentPassword, newPassword);
     if (error) {
       showError(error);
     } else {
       showSuccess("Password updated successfully!");
       setPasswordModalVisible(false);
+      setCurrentPassword("");
       setNewPassword("");
+      setConfirmPassword("");
     }
   };
 
@@ -401,10 +413,20 @@ export default function SettingsScreen() {
       <Portal>
         <Modal
           visible={passwordModalVisible}
-          onDismiss={() => setPasswordModalVisible(false)}
+          onDismiss={() => {
+            setPasswordModalVisible(false);
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+          }}
           contentContainerStyle={[
             styles.modal,
-            { backgroundColor: theme.colors.surface },
+            { 
+              backgroundColor: theme.colors.surface,
+              maxWidth: 400,
+              width: "100%",
+              alignSelf: "center",
+            },
           ]}
         >
           <Text
@@ -413,6 +435,16 @@ export default function SettingsScreen() {
           >
             Change Password
           </Text>
+          <TextInput
+            label="Current Password"
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            mode="outlined"
+            secureTextEntry
+            left={<TextInput.Icon icon="lock-outline" />}
+            style={{ marginBottom: spacing.md }}
+            textColor={theme.colors.onSurface}
+          />
           <TextInput
             label="New Password"
             value={newPassword}
@@ -423,8 +455,23 @@ export default function SettingsScreen() {
             style={{ marginBottom: spacing.md }}
             textColor={theme.colors.onSurface}
           />
+          <TextInput
+            label="Confirm New Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            mode="outlined"
+            secureTextEntry
+            left={<TextInput.Icon icon="lock-check" />}
+            style={{ marginBottom: spacing.md }}
+            textColor={theme.colors.onSurface}
+          />
           <View style={styles.modalActions}>
-            <Button onPress={() => setPasswordModalVisible(false)}>Cancel</Button>
+            <Button onPress={() => {
+              setPasswordModalVisible(false);
+              setCurrentPassword("");
+              setNewPassword("");
+              setConfirmPassword("");
+            }}>Cancel</Button>
             <Button
               mode="contained"
               onPress={handleUpdatePassword}
