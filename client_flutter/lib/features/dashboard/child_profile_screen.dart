@@ -1,0 +1,221 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../family/family_provider.dart';
+
+class ChildProfileScreen extends ConsumerStatefulWidget {
+  final String childId;
+  const ChildProfileScreen({super.key, required this.childId});
+
+  @override
+  ConsumerState<ChildProfileScreen> createState() => _ChildProfileScreenState();
+}
+
+class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(familyProvider.notifier).fetchFamily();
+    });
+  }
+
+  void _handleDelete(String childName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Remove $childName?'),
+        content: const Text('This will permanently remove this child and all their data. This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // close dialog
+              final provider = ref.read(familyProvider.notifier);
+              try {
+                await provider.removeChild(widget.childId);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$childName removed.')));
+                  context.pop(); // pop screen
+                }
+              } catch (e) {
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+              }
+            },
+            child: Text('Remove', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final familyState = ref.watch(familyProvider);
+    
+    final child = familyState.children.where((c) => c.id == widget.childId).firstOrNull;
+
+    if (child == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Not Found')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Child not found.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
+              OutlinedButton(onPressed: () => context.pop(), child: const Text('Go Back')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Safely calculate total balance only for buckets matching this child
+    final totalBalance = familyState.buckets
+        .where((b) => b.childId == child.id)
+        .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+
+    // Get child's transactions
+    final txs = familyState.transactions.where((t) => t.childId == child.id).take(5).toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("${child.name}'s Profile"),
+        actions: [
+          IconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Profile Header
+            Text(child.avatarEmoji, style: const TextStyle(fontSize: 64)),
+            const SizedBox(height: 8),
+            Text(child.name, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('\$${totalBalance.toStringAsFixed(2)}', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.primary)),
+            Text('Total Family Bank Balance', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+            const SizedBox(height: 32),
+
+            // Buckets Grid
+            Align(alignment: Alignment.centerLeft, child: Text('Buckets', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
+            const SizedBox(height: 16),
+            if (familyState.bucketTemplates.isEmpty)
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: theme.colorScheme.outlineVariant, style: BorderStyle.solid)),
+                child: const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(child: Text('No buckets set up yet.')),
+                ),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.1,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: familyState.bucketTemplates.length,
+                itemBuilder: (context, index) {
+                  final template = familyState.bucketTemplates[index];
+                  final bucket = familyState.buckets.where((b) => b.templateId == template.id && b.childId == child.id).firstOrNull;
+                  final balance = bucket?.cachedBalance ?? 0.0;
+                  final color = Color(int.parse(template.color.replaceFirst('#', '0xFF')));
+
+                  return Card(
+                    color: color.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: color.withOpacity(0.5), width: 2),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(template.emoji, style: const TextStyle(fontSize: 28)),
+                        const SizedBox(height: 8),
+                        Text(template.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text('\$${balance.toStringAsFixed(2)}', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: color)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            const SizedBox(height: 32),
+
+            // Activity
+            Align(alignment: Alignment.centerLeft, child: Text('Recent Activity', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
+            const SizedBox(height: 16),
+            if (txs.isEmpty)
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: theme.colorScheme.outlineVariant, style: BorderStyle.solid)),
+                child: const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(child: Text('No transactions yet.')),
+                ),
+              )
+            else
+              Card(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: txs.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final tx = txs[index];
+                    return ListTile(
+                      leading: Icon(tx.type == 'gift' ? Icons.card_giftcard : Icons.attach_money),
+                      title: Text(tx.description ?? tx.type.replaceAll('_', ' ')),
+                      subtitle: Text(tx.createdAt.split('T').first),
+                      trailing: Text(
+                        '${tx.amount >= 0 ? '+' : '-'}\$${tx.amount.abs().toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: tx.amount >= 0 ? theme.colorScheme.primary : theme.colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => context.push(Uri(path: '/withdraw', queryParameters: {'childId': child.id}).toString()),
+                icon: const Icon(Icons.outbound),
+                label: const Text('Record a Spend'),
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _handleDelete(child.name),
+                icon: const Icon(Icons.person_remove),
+                label: Text('Remove ${child.name} from Family'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.error,
+                  side: BorderSide(color: theme.colorScheme.error),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
+  }
+}
