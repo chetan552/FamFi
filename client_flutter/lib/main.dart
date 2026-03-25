@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/env.dart';
 import 'core/router.dart';
+import 'core/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,18 +22,220 @@ void main() async {
   );
 }
 
+// ─── Color Palette ─────────────────────────────────────────────────────
+const _teal       = Color(0xFF2B9EB3);
+const _tealLight  = Color(0xFF5CC8DB);
+const _tealDark   = Color(0xFF1A7A8A);
+const _amber      = Color(0xFFF5A623);
+const _coral      = Color(0xFFE85D75);
+
 class FamFiApp extends ConsumerWidget {
   const FamFiApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final themeModeAsync = ref.watch(settingsProvider);
+
+    // Google Fonts text theme (Inter)
+    final baseTextTheme = GoogleFonts.interTextTheme();
 
     return MaterialApp.router(
       title: 'FamFi',
+      themeMode: themeModeAsync.when(
+        data: (mode) => mode,
+        loading: () => ThemeMode.system,
+        error: (_, __) => ThemeMode.system,
+      ),
+
+      // ── Light Theme ──────────────────────────────────────────────────
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2B9EB3)),
         useMaterial3: true,
+        textTheme: baseTextTheme,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: _teal,
+          primary: _teal,
+          onPrimary: Colors.white,
+          secondary: _amber,
+          onSecondary: Colors.white,
+          secondaryContainer: const Color(0xFFFFCA61),
+          onSecondaryContainer: const Color(0xFFC77E00),
+          tertiary: _coral,
+          onTertiary: Colors.white,
+          surface: const Color(0xFFF8FAFB),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFB),
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFFF8FAFB),
+          surfaceTintColor: Colors.transparent,
+          scrolledUnderElevation: 0,
+          elevation: 0,
+          titleTextStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: const Color(0xFF1A2E35),
+          ),
+          iconTheme: IconThemeData(color: Colors.blueGrey.shade600),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: Colors.white,
+          surfaceTintColor: Colors.transparent,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blueGrey.shade200),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blueGrey.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: _teal, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        dividerTheme: DividerThemeData(
+          color: Colors.blueGrey.shade100,
+          thickness: 0.5,
+        ),
+        listTileTheme: const ListTileThemeData(
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _teal,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            elevation: 0,
+          ),
+        ),
+        chipTheme: ChipThemeData(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          side: BorderSide.none,
+        ),
+        navigationRailTheme: NavigationRailThemeData(
+          backgroundColor: const Color(0xFFF8FAFB),
+          indicatorColor: _teal.withOpacity(0.12),
+          indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          selectedIconTheme: const IconThemeData(color: _teal, size: 24),
+          unselectedIconTheme: IconThemeData(color: Colors.blueGrey.shade400, size: 24),
+          selectedLabelTextStyle: GoogleFonts.inter(color: _teal, fontWeight: FontWeight.bold, fontSize: 13),
+          unselectedLabelTextStyle: GoogleFonts.inter(color: Colors.blueGrey.shade400, fontWeight: FontWeight.w500, fontSize: 13),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: _teal.withOpacity(0.12),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return GoogleFonts.inter(color: _teal, fontWeight: FontWeight.bold, fontSize: 12);
+            }
+            return GoogleFonts.inter(color: Colors.blueGrey.shade400, fontWeight: FontWeight.w500, fontSize: 12);
+          }),
+        ),
+      ),
+
+      // ── Dark Theme ───────────────────────────────────────────────────
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: _teal,
+          brightness: Brightness.dark,
+          primary: _tealLight,
+          onPrimary: const Color(0xFF00353E),
+          secondary: const Color(0xFFFFCC80),
+          onSecondary: const Color(0xFF4A3200),
+          tertiary: const Color(0xFFFF8A9B),
+          onTertiary: const Color(0xFF600020),
+          surface: const Color(0xFF15262C),
+          onSurface: const Color(0xFFE1E9EC),
+          surfaceContainerHighest: const Color(0xFF22383F),
+          onSurfaceVariant: const Color(0xFFB0C4CC),
+          outline: const Color(0xFF6D8A94),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0D1B1F),
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFF0D1B1F),
+          surfaceTintColor: Colors.transparent,
+          scrolledUnderElevation: 0,
+          elevation: 0,
+          titleTextStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: const Color(0xFFE1E9EC),
+          ),
+          iconTheme: const IconThemeData(color: Color(0xFFB0C4CC)),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: const Color(0xFF15262C),
+          surfaceTintColor: Colors.transparent,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF1E333A),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF3A5560)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF3A5560)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: _tealLight, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: Color(0xFF2A4450),
+          thickness: 0.5,
+        ),
+        listTileTheme: const ListTileThemeData(
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _teal,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            elevation: 0,
+          ),
+        ),
+        chipTheme: ChipThemeData(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          side: BorderSide.none,
+        ),
+        navigationRailTheme: NavigationRailThemeData(
+          backgroundColor: const Color(0xFF0D1B1F),
+          indicatorColor: _tealLight.withOpacity(0.18),
+          indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          selectedIconTheme: const IconThemeData(color: _tealLight, size: 24),
+          unselectedIconTheme: const IconThemeData(color: Color(0xFFB0C4CC), size: 24),
+          selectedLabelTextStyle: GoogleFonts.inter(color: _tealLight, fontWeight: FontWeight.bold, fontSize: 13),
+          unselectedLabelTextStyle: GoogleFonts.inter(color: const Color(0xFFB0C4CC), fontWeight: FontWeight.w500, fontSize: 13),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: const Color(0xFF15262C),
+          indicatorColor: _tealLight.withOpacity(0.18),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return GoogleFonts.inter(color: _tealLight, fontWeight: FontWeight.bold, fontSize: 12);
+            }
+            return GoogleFonts.inter(color: const Color(0xFFB0C4CC), fontWeight: FontWeight.w500, fontSize: 12);
+          }),
+        ),
       ),
       routerConfig: router,
     );

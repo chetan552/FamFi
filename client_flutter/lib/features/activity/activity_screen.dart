@@ -147,14 +147,20 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Text(
                             dateKey.toUpperCase(),
-                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.8),
                           ),
                         ),
+                      ),
                         ...txs.map((tx) {
                           final config = _getTypeConfig(tx.type, theme.colorScheme.primary);
                           final color = config['color'] as Color;
@@ -170,9 +176,16 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                             ),
                             title: Text(tx.description ?? config['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text('${getChildName(tx.childId, tx.bucketId)} • ${config['label']}', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
-                            trailing: Text(
-                              '${isNegative ? '-' : '+'}\$${tx.amount.abs().toStringAsFixed(2)}',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isNegative ? Colors.red : Colors.green),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isNegative ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${isNegative ? '-' : '+'}\$${tx.amount.abs().toStringAsFixed(2)}',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isNegative ? Colors.red : Colors.green),
+                              ),
                             ),
                           );
                         }),

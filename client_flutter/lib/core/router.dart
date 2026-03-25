@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../features/auth/auth_provider.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
+import '../features/auth/child_login_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/chores/chores_screen.dart';
 import '../features/chores/add_chore_screen.dart';
@@ -22,6 +23,7 @@ import '../features/family/interest_settings_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/settings/google_tasks_screen.dart';
 import '../features/settings/google_callback_screen.dart';
+import '../features/mentor/money_mentor_screen.dart';
 import 'navigation_scaffold.dart';
 
 part 'router.g.dart';
@@ -34,7 +36,9 @@ GoRouter appRouter(Ref ref) {
     initialLocation: '/',
     redirect: (context, state) {
       final isLoggedIn = authState != null;
-      final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/signup';
+      final isLoggingIn = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/signup' ||
+          state.matchedLocation == '/child-login';
 
       if (!isLoggedIn && !isLoggingIn) return '/login';
       if (isLoggedIn && isLoggingIn) return '/';
@@ -50,6 +54,10 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
+        path: '/child-login',
+        builder: (context, state) => const ChildLoginScreen(),
+      ),
+      GoRoute(
         path: '/family-setup',
         builder: (context, state) => const FamilySetupScreen(),
       ),
@@ -59,6 +67,10 @@ GoRouter appRouter(Ref ref) {
           code: state.uri.queryParameters['code'],
           error: state.uri.queryParameters['error'],
         ),
+      ),
+      GoRoute(
+        path: '/mentor',
+        builder: (context, state) => const MoneyMentorScreen(),
       ),
       GoRoute(
         path: '/add-chore',

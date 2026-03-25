@@ -44,17 +44,37 @@ class ChoresScreen extends ConsumerWidget {
                     Text('No chores yet', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     const Text('Create chores to help your children earn rewards.'),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => context.push('/add-chore'),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create First Chore'),
+                    ),
                   ],
                 ),
               )
             : ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
-                  Text(
-                    '${familyState.chores.length} total • ${pendingReview.length} needs review',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      Chip(
+                        avatar: Icon(Icons.list, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                        label: Text('${familyState.chores.length} total'),
+                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                        side: BorderSide.none,
+                      ),
+                      if (pendingReview.isNotEmpty)
+                        Chip(
+                          avatar: const Icon(Icons.error_outline, size: 16, color: Colors.orange),
+                          label: Text('${pendingReview.length} needs review'),
+                          backgroundColor: Colors.orange.withOpacity(0.1),
+                          side: BorderSide.none,
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   if (pendingReview.isNotEmpty) ...[
                     _buildSectionHeader('Pending Review', Icons.error_outline, Colors.orange),
                     ...pendingReview.map((c) => _ChoreCard(chore: c)),
@@ -124,98 +144,106 @@ class _ChoreCard extends ConsumerWidget {
     }
 
     return Card(
-      elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: isDone ? theme.colorScheme.secondaryContainer.withOpacity(0.5) : theme.colorScheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      color: isDone ? theme.colorScheme.secondaryContainer.withOpacity(0.5) : null,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: statusColor, width: 4)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(chore.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      Row(
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (child != null) ...[
-                            Text(child.avatarEmoji, style: const TextStyle(fontSize: 14)),
-                            const SizedBox(width: 4),
-                            Text(child.name, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
-                            const SizedBox(width: 12),
-                          ],
-                          if (chore.dueDate != null) ...[
-                            Icon(Icons.calendar_today, size: 14, color: theme.colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 4),
-                            Text(chore.dueDate!, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
-                          ],
+                          Text(chore.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              if (child != null) ...[
+                                Text(child.avatarEmoji, style: const TextStyle(fontSize: 14)),
+                                const SizedBox(width: 4),
+                                Text(child.name, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
+                                const SizedBox(width: 12),
+                              ],
+                              if (chore.dueDate != null) ...[
+                                Icon(Icons.calendar_today, size: 14, color: theme.colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 4),
+                                Text(chore.dueDate!, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                  child: Text('\$${chore.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                  child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-                const Spacer(),
-                if (canEdit)
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 20),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    onPressed: () {
-                      context.push('/edit-chore/${chore.id}');
-                    },
-                  ),
-                if (chore.status != 'paid')
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    color: Colors.red,
-                    onPressed: () async {
-                      try {
-                        await ref.read(familyProvider.notifier).deleteChore(chore.id);
-                      } catch (e) {
-                         // ignore
-                      }
-                    },
-                  ),
-                if (isDone)
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await ref.read(familyProvider.notifier).updateChoreStatus(chore.id, 'approved');
-                      } catch (e) {
-                         // ignore
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text('Approve ✓', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(color: theme.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                      child: Text('\$${chore.value.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                      child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                    const Spacer(),
+                    if (canEdit)
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        color: theme.colorScheme.onSurfaceVariant,
+                        onPressed: () {
+                          context.push('/edit-chore/${chore.id}');
+                        },
+                      ),
+                    if (chore.status != 'paid')
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        color: Colors.red,
+                        onPressed: () async {
+                          try {
+                            await ref.read(familyProvider.notifier).deleteChore(chore.id);
+                          } catch (e) {
+                             // ignore
+                          }
+                        },
+                      ),
+                    if (isDone)
+                      ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            await ref.read(familyProvider.notifier).updateChoreStatus(chore.id, 'approved');
+                          } catch (e) {
+                             // ignore
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          minimumSize: const Size(0, 36),
+                        ),
+                        child: const Text('Approve ✓', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

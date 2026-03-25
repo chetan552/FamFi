@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   welcome: { marginBottom: spacing.lg },
   heroCard: { borderRadius: 20, marginBottom: spacing.xl, overflow: "hidden" },

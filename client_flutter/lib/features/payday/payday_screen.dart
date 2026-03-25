@@ -12,15 +12,22 @@ class PaydayScreen extends ConsumerStatefulWidget {
 }
 
 class _PaydayScreenState extends ConsumerState<PaydayScreen> {
-  // childId -> templateId -> amountStr
-  Map<String, Map<String, String>> distributions = {};
+  // Flat map for childId_templateId -> value
+  final Map<String, String> distributions = {};
+  // Track last total per child
+  final Map<String, double> _lastTotals = {};
+  // Flat map for childId_templateId -> TextEditingController
+  final Map<String, TextEditingController> _controllers = {};
+  
   Map<String, String> errors = {};
   Set<String> paidChildren = {};
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _recalculateDistributions();
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   void _recalculateDistributions() {
@@ -28,56 +35,70 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
     final templates = familyState.bucketTemplates;
     if (templates.isEmpty) return;
 
-    final childrenWithValidChores = familyState.children.where((c) {
-      return familyState.chores.any((chore) => chore.assignedToChildId == c.id && chore.status == 'approved');
-    });
+    final childrenWithPay = familyState.children.map((child) {
+      final childChores = familyState.chores.where((c) => c.assignedToChildId == child.id && c.status == 'approved').toList();
+      final total = childChores.fold<double>(0, (sum, c) => sum + c.value);
+      return (childId: child.id, total: total);
+    }).where((item) => item.total > 0).toList();
 
-    final newDistributions = <String, Map<String, String>>{};
-    
-    for (var child in childrenWithValidChores) {
-      if (!distributions.containsKey(child.id)) {
-        final childChores = familyState.chores.where((c) => c.assignedToChildId == child.id && c.status == 'approved');
-        final total = childChores.fold<double>(0, (sum, c) => sum + c.value);
-        final splitAmount = (total / templates.length).toStringAsFixed(2);
+    bool changed = false;
+    for (final item in childrenWithPay) {
+      final childId = item.childId;
+      final total = item.total;
+      
+      // If any bucket for this child is missing, recalculate all for them
+      final firstBucketKey = "${childId}_${templates.first.id}";
+      if (_lastTotals[childId] != total || !distributions.containsKey(firstBucketKey)) {
+        _lastTotals[childId] = total;
         
-        final childDist = <String, String>{};
-        double sumExceptLast = double.parse(splitAmount) * (templates.length - 1);
+        final splitAmount = (total / templates.length).toStringAsFixed(2);
+        final double sumExceptLast = double.parse(splitAmount) * (templates.length - 1);
         
         for (int i = 0; i < templates.length; i++) {
-          if (i == templates.length - 1) {
-            childDist[templates[i].id] = (total - sumExceptLast).toStringAsFixed(2);
+          final tId = templates[i].id;
+          final key = "${childId}_$tId";
+          final String amountStr = (i == templates.length - 1) 
+              ? (total - sumExceptLast).toStringAsFixed(2) 
+              : splitAmount;
+          
+          distributions[key] = amountStr;
+          
+          final existingController = _controllers[key];
+          if (existingController == null) {
+            _controllers[key] = TextEditingController(text: amountStr);
           } else {
-            childDist[templates[i].id] = splitAmount;
+            if (existingController.text != amountStr) {
+               existingController.text = amountStr;
+            }
           }
         }
-        newDistributions[child.id] = childDist;
-      } else {
-        newDistributions[child.id] = distributions[child.id]!;
+        changed = true;
       }
     }
 
-    setState(() {
-      distributions = newDistributions;
-    });
+    if (changed && mounted) {
+      setState(() {});
+    }
   }
 
   void _handleUpdateAmount(String childId, String templateId, String value) {
-    setState(() {
-      distributions[childId]?[templateId] = value;
-      errors.remove(childId);
-    });
+    distributions["${childId}_$templateId"] = value;
+    if (errors.containsKey(childId)) {
+      setState(() {
+        errors.remove(childId);
+      });
+    }
   }
 
-  Future<void> _handleProcessPayday(String childId, double total, List<String> choreIds, String childName) async {
-    final childDist = distributions[childId];
-    if (childDist == null) return;
-
+  Future<void> _handleProcessPayday(String childId, double total, List<String> choreIds, String childName, List<String> templateIds) async {
     double calculatedTotal = 0;
     final numberDist = <String, double>{};
-    for (final entry in childDist.entries) {
-      final val = double.tryParse(entry.value) ?? 0;
+    for (final tId in templateIds) {
+      final key = "${childId}_$tId";
+      final valStr = distributions[key] ?? '0';
+      final val = double.tryParse(valStr) ?? 0;
       calculatedTotal += val;
-      numberDist[entry.key] = val;
+      numberDist[tId] = val;
     }
 
     if ((calculatedTotal - total).abs() > 0.01) {
@@ -113,6 +134,11 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
       final total = childChores.fold<double>(0, (sum, c) => sum + c.value);
       return (child: child, chores: childChores, total: total);
     }).where((item) => item.total > 0).toList();
+
+    // Trigger recalculation if state changed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _recalculateDistributions();
+    });
 
     if (childrenWithPay.isEmpty) {
       return Scaffold(
@@ -152,7 +178,6 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
           final total = data.total;
           final childChores = data.chores;
           
-          final dist = distributions[child.id] ?? {};
           final childError = errors[child.id];
           final isPaid = paidChildren.contains(child.id);
 
@@ -216,7 +241,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 textAlign: TextAlign.right,
                                 decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0), prefixText: '\$'),
-                                controller: TextEditingController(text: dist[bt.id] ?? '')..selection = TextSelection.fromPosition(TextPosition(offset: (dist[bt.id] ?? '').length)),
+                                controller: _controllers["${child.id}_${bt.id}"],
                                 onChanged: (val) => _handleUpdateAmount(child.id, bt.id, val),
                               ),
                             )
@@ -236,7 +261,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                         ),
-                        onPressed: familyState.loading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name),
+                        onPressed: familyState.loading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, familyState.bucketTemplates.map((t) => t.id).toList()),
                         child: familyState.loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),

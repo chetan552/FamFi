@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_provider.dart';
 import '../family/family_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/settings_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -46,14 +47,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Text('My Profile', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             ),
             Card(
-              elevation: 2,
+              elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               margin: const EdgeInsets.only(bottom: 24),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Text(familyState.currentUserProfile?.avatarEmoji ?? '😊', style: const TextStyle(fontSize: 40)),
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary.withOpacity(0.15),
+                            theme.colorScheme.primary.withOpacity(0.05),
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(familyState.currentUserProfile?.avatarEmoji ?? '😊', style: const TextStyle(fontSize: 32)),
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -71,6 +86,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Edit Profile coming soon')));
                       },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Appearance
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 8),
+              child: Text('Appearance', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              margin: const EdgeInsets.only(bottom: 24),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Customize how FamFi looks', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
+                    const SizedBox(height: 16),
+                    ref.watch(settingsProvider).when(
+                      data: (mode) => SegmentedButton<ThemeMode>(
+                        segments: const [
+                          ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.wb_sunny_outlined)),
+                          ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.nightlight_round_outlined)),
+                          ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto_outlined)),
+                        ],
+                        selected: {mode},
+                        onSelectionChanged: (newSelection) {
+                          ref.read(settingsProvider.notifier).setThemeMode(newSelection.first);
+                        },
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Text('Error: $err'),
                     ),
                   ],
                 ),
@@ -130,18 +181,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                       ],
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: Icon(Icons.check_box, color: familyState.googleConnected ? theme.colorScheme.primary : theme.colorScheme.outline),
-                      title: const Text('Google Tasks Integration'),
-                      subtitle: Text(familyState.googleConnected ? 'Connected ✓' : 'Sync chore lists from Google'),
-                      trailing: const Icon(Icons.chevron_right, size: 16),
-                      onTap: () => context.push('/google-tasks'),
-                    ),
                   ],
                 ),
               ),
             ],
+
+            // Integrations
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 8, top: 8),
+              child: Text('Integrations', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+            Card(
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
+              margin: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.check_box, color: familyState.googleConnected ? theme.colorScheme.primary : theme.colorScheme.outline),
+                    title: const Text('Google Tasks Integration'),
+                    subtitle: Text(familyState.googleConnected ? 'Connected ✓' : 'Sync chore lists from Google'),
+                    trailing: const Icon(Icons.chevron_right, size: 16),
+                    onTap: () => context.push('/google-tasks'),
+                  ),
+                ],
+              ),
+            ),
 
             // Account
             Padding(
@@ -164,9 +230,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: const Text('Sign Out'),
-                    onTap: _handleSignOut,
+                    leading: Icon(Icons.logout, color: theme.colorScheme.error),
+                    title: Text('Sign Out', style: TextStyle(color: theme.colorScheme.error)),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Sign Out'),
+                          content: const Text('Are you sure you want to sign out?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                            ElevatedButton(
+                              onPressed: () { Navigator.pop(ctx); _handleSignOut(); },
+                              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.error),
+                              child: const Text('Sign Out'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                   const Divider(height: 1),
                   ListTile(

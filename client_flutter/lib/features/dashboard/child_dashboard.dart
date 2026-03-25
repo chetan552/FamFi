@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../auth/auth_provider.dart';
 import '../family/family_provider.dart';
 
 class ChildDashboard extends ConsumerWidget {
@@ -26,24 +27,85 @@ class ChildDashboard extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("${child.name}'s Bank"),
+        title: const Text(''),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push('/settings'),
+            tooltip: 'Switch Account',
+            icon: const Icon(Icons.switch_account_outlined),
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Switch Account?'),
+                  content: const Text('This will log you out. Your parent can log back in.'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Stay')),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Log Out'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed == true) {
+                await ref.read(authProvider.notifier).signOut();
+              }
+            },
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async => ref.read(familyProvider.notifier).fetchFamily(),
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           children: [
+            Row(
+              children: [
+                const Text('🏦', style: TextStyle(fontSize: 32)),
+                const SizedBox(width: 12),
+                Text(
+                  'FamFi',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.primary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              familyState.family?.name != null && familyState.family!.name.toLowerCase().startsWith('the ')
+                  ? '${familyState.family!.name} Bank'
+                  : 'The ${familyState.family?.name ?? 'Our'} Family Bank',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'Hi, ${child.name}! 👋',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: theme.colorScheme.onSurface,
+                letterSpacing: -1,
+              ),
+            ),
+            const SizedBox(height: 24),
             // Big Balance Header
-            Card(
-              elevation: 4,
-              color: theme.colorScheme.primaryContainer,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2B9EB3), Color(0xFF7B61FF)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF2B9EB3).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8)),
+                ],
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
                 child: Column(
@@ -55,7 +117,7 @@ class ChildDashboard extends ConsumerWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
-                        color: theme.colorScheme.onPrimaryContainer.withOpacity(0.7),
+                        color: Colors.white.withOpacity(0.85),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -63,7 +125,7 @@ class ChildDashboard extends ConsumerWidget {
                       '\$${totalBalance.toStringAsFixed(2)}',
                       style: theme.textTheme.displayMedium?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: theme.colorScheme.onPrimaryContainer,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -74,16 +136,18 @@ class ChildDashboard extends ConsumerWidget {
 
             // Mentor Banner
             InkWell(
-              onTap: () {
-                // TODO: Route to Mentor UI
-              },
+              onTap: () => context.push('/mentor'),
               borderRadius: BorderRadius.circular(16),
-              child: Card(
-                elevation: 0,
-                color: const Color(0x156200EE),
-                shape: RoundedRectangleBorder(
+              child: Container(
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: Color(0x506200EE), width: 1),
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withOpacity(0.08),
+                      theme.colorScheme.primary.withOpacity(0.03),
+                    ],
+                  ),
+                  border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -93,7 +157,7 @@ class ChildDashboard extends ConsumerWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.5),
+                          color: theme.colorScheme.primary.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
@@ -124,6 +188,7 @@ class ChildDashboard extends ConsumerWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 32),
 
             // Buckets Section

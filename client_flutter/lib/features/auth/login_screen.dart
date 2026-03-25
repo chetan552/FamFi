@@ -27,169 +27,189 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty) {
-      setState(() => _error = 'Please enter your email.');
+      setState(() { _error = 'Please enter your email.'; _isLoading = false; });
       return;
     }
     if (password.isEmpty) {
-      setState(() => _error = 'Please enter your password.');
+      setState(() { _error = 'Please enter your password.'; _isLoading = false; });
       return;
     }
 
     try {
       await ref.read(authProvider.notifier).signIn(email, password);
-      // Auth changes automatically redirect via go_router
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _error = e.toString();
-          if (_error!.startsWith('Exception: ')) {
-            _error = _error!.substring(11);
-          }
-        });
+        setState(() => _error = _friendlyAuthError(e.toString()));
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String _friendlyAuthError(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('invalid_credentials') || lower.contains('invalid login credentials')) {
+      return 'Incorrect email or password. Please try again.';
+    }
+    if (lower.contains('email not confirmed')) {
+      return 'Please confirm your email address before signing in.';
+    }
+    if (lower.contains('user not found')) {
+      return 'No account found with that email address.';
+    }
+    if (lower.contains('too many requests') || lower.contains('rate limit')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (lower.contains('network') || lower.contains('socket') || lower.contains('connection')) {
+      return 'Network error. Please check your connection and try again.';
+    }
+    // Strip noisy prefix and return a generic fallback
+    final cleaned = raw.replaceAll('Exception: ', '').replaceAll('AuthApiException', '').trim();
+    // If it still looks like a raw exception, show generic
+    if (cleaned.startsWith('(') || cleaned.length > 120) {
+      return 'Sign in failed. Please try again.';
+    }
+    return cleaned;
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    ref.watch(authProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header
-                  const Center(
-                    child: Text('🏦', style: TextStyle(fontSize: 64)),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              theme.colorScheme.primary.withOpacity(0.08),
+              theme.colorScheme.surface,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.3)),
                   ),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Text(
-                      'FamFi',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: Text(
-                      'Welcome back!',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Form
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: !_showPassword,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _handleLogin(),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => _showPassword = !_showPassword),
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        _error!,
-                        style: TextStyle(color: theme.colorScheme.error, fontSize: 12),
-                      ),
-                    ),
-
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      // We don't have a forgot-password route yet, but we'll stub it
-                      onPressed: () {},
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(50, 30),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        alignment: Alignment.centerRight,
-                      ),
-                      child: Text('Forgot Password?', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13)),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 24),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Don't have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-                      InkWell(
-                        onTap: () => context.go('/signup'),
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ── Branding ──
+                        const Center(child: Text('🏦', style: TextStyle(fontSize: 56))),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Text(
+                            'FamFi',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                        const SizedBox(height: 4),
+                        Center(
+                          child: Text(
+                            'Welcome back!',
+                            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
 
-                  ElevatedButton.icon(
-                    onPressed: () => context.go('/child-login'),
-                    icon: const Icon(Icons.face),
-                    label: const Text("I'm a Kid", style: TextStyle(fontSize: 14)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.secondaryContainer,
-                      foregroundColor: theme.colorScheme.onSecondaryContainer,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        // ── Form ──
+                        TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: Icon(Icons.email_outlined),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: !_showPassword,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _handleLogin(),
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                              onPressed: () => setState(() => _showPassword = !_showPassword),
+                            ),
+                          ),
+                        ),
+
+                        if (_error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 12)),
+                          ),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(50, 30),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text('Forgot Password?', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13)),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                          child: _isLoading
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(height: 24),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Don't have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                            InkWell(
+                              onTap: () => context.go('/signup'),
+                              child: Text('Sign Up', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        ElevatedButton.icon(
+                          onPressed: () => context.go('/child-login'),
+                          icon: const Text('👦', style: TextStyle(fontSize: 18)),
+                          label: const Text("I'm a Kid", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.secondaryContainer,
+                            foregroundColor: theme.colorScheme.onSecondaryContainer,
+                            minimumSize: const Size.fromHeight(50),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
