@@ -20,6 +20,7 @@ class FamilyState {
   final bool googleConnected;
   final List<GoogleTaskMapping> googleMappings;
   final bool loading;
+  final String? error;
 
   FamilyState({
     this.family, 
@@ -34,6 +35,7 @@ class FamilyState {
     this.googleConnected = false,
     this.googleMappings = const [],
     this.loading = false,
+    this.error,
   });
 
   FamilyState copyWith({
@@ -49,6 +51,7 @@ class FamilyState {
     bool? googleConnected,
     List<GoogleTaskMapping>? googleMappings,
     bool? loading,
+    String? error,
   }) {
     return FamilyState(
       family: family ?? this.family,
@@ -63,11 +66,12 @@ class FamilyState {
       googleConnected: googleConnected ?? this.googleConnected,
       googleMappings: googleMappings ?? this.googleMappings,
       loading: loading ?? this.loading,
+      error: error ?? this.error,
     );
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class FamilyNotifier extends _$FamilyNotifier {
   final _supabase = supa.Supabase.instance.client;
 
@@ -128,8 +132,7 @@ class FamilyNotifier extends _$FamilyNotifier {
       // Also fetch interest settings seamlessly
       await fetchInterestSettings();
     } catch (e) {
-      state = state.copyWith(loading: false);
-      throw Exception('Failed to fetch family data: $e');
+      state = state.copyWith(loading: false, error: e.toString());
     }
   }
 
@@ -283,30 +286,34 @@ class FamilyNotifier extends _$FamilyNotifier {
   }
 
   Future<void> saveGoogleTokens(String accessToken, String? refreshToken, int expiresIn) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('No user');
+    final authId = _supabase.auth.currentUser?.id;
+    if (authId == null) throw Exception('No user authenticated');
+
+    final profile = await _supabase.from('users').select('id').eq('auth_id', authId).maybeSingle();
+    final userId = profile?['id'];
+
+    if (userId == null) throw Exception('User profile not found');
 
     final expiresAt = DateTime.now().add(Duration(seconds: expiresIn)).toIso8601String();
-    
     final existing = await _supabase.from('google_tokens').select('id').eq('user_id', userId).maybeSingle();
     
-    if (existing != null) {
-      await _supabase.from('google_tokens').update({
-        'access_token': accessToken,
-        if (refreshToken != null) 'refresh_token': refreshToken,
-        'expires_at': expiresAt,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', existing['id']);
-    } else {
-      await _supabase.from('google_tokens').insert({
-        'user_id': userId,
-        'access_token': accessToken,
-        if (refreshToken != null) 'refresh_token': refreshToken,
-        'expires_at': expiresAt,
-      });
+    final tokenData = <String, dynamic>{
+      'user_id': userId,
+      'access_token': accessToken,
+      'expires_at': expiresAt,
+    };
+    if (refreshToken != null) {
+      tokenData['refresh_token'] = refreshToken;
     }
 
+    if (existing != null) {
+      await _supabase.from('google_tokens').update(tokenData).eq('id', existing['id']);
+    } else {
+      await _supabase.from('google_tokens').insert(tokenData);
+    }
+    
     state = state.copyWith(googleConnected: true);
+    await fetchFamily();
   }
 
   Future<void> disconnectGoogle() async {

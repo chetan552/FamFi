@@ -5,6 +5,8 @@ import '../auth/auth_provider.dart';
 import '../family/family_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/settings_provider.dart';
+import 'package:flutter/services.dart';
+
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -154,10 +156,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, borderRadius: BorderRadius.circular(8)),
-                            child: Text(familyState.family!.inviteCode, style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: theme.colorScheme.onPrimaryContainer, fontSize: 18)),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SelectableText(
+                                  familyState.family!.inviteCode, 
+                                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: theme.colorScheme.onPrimaryContainer, fontSize: 18)
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  icon: const Icon(Icons.copy, size: 18),
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  onPressed: () {
+                                    Clipboard.setData(ClipboardData(text: familyState.family!.inviteCode));
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text('Invite code copied to clipboard'),
+                                          behavior: SnackBarBehavior.floating,
+                                          width: 280,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
+
                         ],
                       ),
                     ),

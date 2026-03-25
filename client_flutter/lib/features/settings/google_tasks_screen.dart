@@ -16,27 +16,20 @@ class GoogleTasksScreen extends ConsumerStatefulWidget {
 class _GoogleTasksScreenState extends ConsumerState<GoogleTasksScreen> {
   bool _loadingLists = false;
   List<Map<String, dynamic>> _taskLists = [];
-  bool _isInit = true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(familyProvider.notifier).checkGoogleConnection();
-      ref.read(familyProvider.notifier).fetchGoogleMappings();
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_isInit) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(familyProvider.notifier).checkGoogleConnection();
+      await ref.read(familyProvider.notifier).fetchGoogleMappings();
+      // Now that connection check has resolved, load task lists if connected
+      if (!mounted) return;
       final state = ref.read(familyProvider);
       if (state.googleConnected && state.currentUserProfile != null) {
         _loadTaskLists();
       }
-      _isInit = false;
-    }
+    });
   }
 
   Future<void> _loadTaskLists() async {

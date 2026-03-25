@@ -20,7 +20,7 @@ final class FamilyNotifierProvider
         argument: null,
         retry: null,
         name: r'familyProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class FamilyNotifierProvider
   }
 }
 
-String _$familyNotifierHash() => r'f7c505b0ec3baa6053f06e37d475b32c6477ff28';
+String _$familyNotifierHash() => r'0ccbb3b6790fddf186d84ee739bb97a237f4c12a';
 
 abstract class _$FamilyNotifier extends $Notifier<FamilyState> {
   FamilyState build();

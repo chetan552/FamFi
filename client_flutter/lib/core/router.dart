@@ -28,17 +28,26 @@ import 'navigation_scaffold.dart';
 
 part 'router.g.dart';
 
+// ── Router Notifier ──────────────────────────────────────────────────
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(Ref ref) {
+    _ref = ref;
+    ref.listen(authProvider, (_, __) => notifyListeners());
+  }
+  late final Ref _ref;
+}
+
 @riverpod
 GoRouter appRouter(Ref ref) {
-  final authState = ref.watch(authProvider);
+  final notifier = RouterNotifier(ref);
 
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: notifier,
     redirect: (context, state) {
-      final isLoggedIn = authState != null;
+      final isLoggedIn = ref.read(authProvider) != null;
 
-      // Google OAuth callback must ALWAYS render regardless of auth state —
-      // it completes the token exchange then navigates programmatically.
+      // Google OAuth callback bypass
       if (state.matchedLocation == '/google-callback') return null;
 
       final isAuthRoute = state.matchedLocation == '/login' ||

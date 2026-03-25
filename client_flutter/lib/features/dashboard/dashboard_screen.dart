@@ -24,10 +24,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final familyState = ref.watch(familyProvider);
+    final theme = Theme.of(context);
 
-    if (familyState.loading && familyState.currentUserProfile == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+    if (familyState.error != null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text('Failed to load dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                const SizedBox(height: 8),
+                Text(familyState.error!, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => ref.read(familyProvider.notifier).fetchFamily(),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
