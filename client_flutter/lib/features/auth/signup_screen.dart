@@ -112,36 +112,53 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         const SizedBox(height: 32),
 
                         // ── Form ──
-                        TextField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Your Name', prefixIcon: Icon(Icons.person_outline)),
-                          textCapitalization: TextCapitalization.words,
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: !_showPassword,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
-                              onPressed: () => setState(() => _showPassword = !_showPassword),
-                            ),
+                        AutofillGroup(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextFormField(
+                                controller: _nameController,
+                                decoration: const InputDecoration(labelText: 'Your Name', prefixIcon: Icon(Icons.person_outline)),
+                                textCapitalization: TextCapitalization.words,
+                                autofillHints: const [AutofillHints.name],
+                                textInputAction: TextInputAction.next,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [AutofillHints.email],
+                                textInputAction: TextInputAction.next,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: !_showPassword,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                                    onPressed: () => setState(() => _showPassword = !_showPassword),
+                                  ),
+                                ),
+                                autofillHints: const [AutofillHints.newPassword],
+                                textInputAction: TextInputAction.next,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _confirmPasswordController,
+                                obscureText: !_showPassword,
+                                decoration: const InputDecoration(labelText: 'Confirm Password', prefixIcon: Icon(Icons.lock_clock_outlined)),
+                                autofillHints: const [AutofillHints.password],
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _handleSignup(),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _confirmPasswordController,
-                          obscureText: !_showPassword,
-                          decoration: const InputDecoration(labelText: 'Confirm Password', prefixIcon: Icon(Icons.lock_clock_outlined)),
-                        ),
+
 
                         if (_error != null)
                           Padding(
