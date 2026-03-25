@@ -58,7 +58,6 @@ class _GoogleCallbackScreenState extends ConsumerState<GoogleCallbackScreen> {
       
       final tokens = await service.exchangeCodeForTokens(
         widget.code!,
-        'challenge', // dummy since we won't use code_challenge in auth URL
         redirectUri,
       );
 

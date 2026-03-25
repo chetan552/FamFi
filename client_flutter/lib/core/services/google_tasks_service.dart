@@ -16,7 +16,7 @@ class GoogleTasksService {
 
   GoogleTasksService(this.supabase);
 
-  Future<Map<String, dynamic>> exchangeCodeForTokens(String code, String codeVerifier, String redirectUri) async {
+  Future<Map<String, dynamic>> exchangeCodeForTokens(String code, String redirectUri) async {
     final response = await http.post(
       Uri.parse(_tokenUrl),
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -24,7 +24,6 @@ class GoogleTasksService {
         'client_id': clientId,
         'client_secret': clientSecret,
         'code': code,
-        'code_verifier': codeVerifier,
         'grant_type': 'authorization_code',
         'redirect_uri': redirectUri,
       },

@@ -36,12 +36,17 @@ GoRouter appRouter(Ref ref) {
     initialLocation: '/',
     redirect: (context, state) {
       final isLoggedIn = authState != null;
-      final isLoggingIn = state.matchedLocation == '/login' ||
+
+      // Google OAuth callback must ALWAYS render regardless of auth state —
+      // it completes the token exchange then navigates programmatically.
+      if (state.matchedLocation == '/google-callback') return null;
+
+      final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/signup' ||
           state.matchedLocation == '/child-login';
 
-      if (!isLoggedIn && !isLoggingIn) return '/login';
-      if (isLoggedIn && isLoggingIn) return '/';
+      if (!isLoggedIn && !isAuthRoute) return '/login';
+      if (isLoggedIn && isAuthRoute) return '/';
       return null;
     },
     routes: [
