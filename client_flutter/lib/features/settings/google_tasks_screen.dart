@@ -21,11 +21,15 @@ class _GoogleTasksScreenState extends ConsumerState<GoogleTasksScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(familyProvider.notifier).checkGoogleConnection();
-      await ref.read(familyProvider.notifier).fetchGoogleMappings();
+      final notifier = ref.read(familyProvider.notifier);
+      await notifier.fetchFamily(); // Ensure family is loaded first
+      await notifier.checkGoogleConnection();
+      await notifier.fetchGoogleMappings();
+      
       // Now that connection check has resolved, load task lists if connected
       if (!mounted) return;
       final state = ref.read(familyProvider);
+
       if (state.googleConnected && state.currentUserProfile != null) {
         _loadTaskLists();
       }

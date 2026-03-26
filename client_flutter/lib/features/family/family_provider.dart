@@ -263,7 +263,9 @@ class FamilyNotifier extends _$FamilyNotifier {
   }
 
   Future<void> checkGoogleConnection() async {
-    final userId = _supabase.auth.currentUser?.id;
+    final userId = state.currentUserProfile?.id ?? 
+        (await _supabase.from('users').select('id').eq('auth_id', _supabase.auth.currentUser?.id ?? '').maybeSingle())?['id'];
+    
     if (userId == null) return;
     
     try {
@@ -317,7 +319,9 @@ class FamilyNotifier extends _$FamilyNotifier {
   }
 
   Future<void> disconnectGoogle() async {
-    final userId = _supabase.auth.currentUser?.id;
+    final userId = state.currentUserProfile?.id ?? 
+        (await _supabase.from('users').select('id').eq('auth_id', _supabase.auth.currentUser?.id ?? '').maybeSingle())?['id'];
+        
     if (userId == null) return;
     await _supabase.from('google_tokens').delete().eq('user_id', userId);
     state = state.copyWith(googleConnected: false, googleMappings: []);
@@ -341,16 +345,16 @@ class FamilyNotifier extends _$FamilyNotifier {
   }
 
   Future<Map<String, dynamic>> syncGoogleTasks() async {
-    final userId = _supabase.auth.currentUser?.id;
+    final userId = state.currentUserProfile?.id ?? 
+        (await _supabase.from('users').select('id').eq('auth_id', _supabase.auth.currentUser?.id ?? '').maybeSingle())?['id'];
     final familyId = state.family?.id;
+    
     if (userId == null || familyId == null) {
       return {'synced': 0, 'errors': ['Not logged in or no family.']};
     }
     
     state = state.copyWith(loading: true);
     try {
-      // Note: actual service invocation is handled in the UI since the UI calls down, or we import and run it here.
-      // Actually we imported GoogleTasksService at the top! We can use it.
       final service = GoogleTasksService(_supabase);
       final result = await service.syncTasksForFamily(userId, familyId);
       await fetchFamily();
@@ -600,6 +604,48 @@ class FamilyNotifier extends _$FamilyNotifier {
       await fetchFamily();
     } catch (e) {
       throw Exception('Failed to withdraw: $e');
+    }
+  }
+
+  Future<void> updateProfile(String name, String avatarEmoji) async {
+    final authUser = ref.read(authProvider);
+    if (authUser == null) return;
+    
+    try {
+      await _supabase.from('users').update({
+        'name': name,
+        'avatar_emoji': avatarEmoji,
+      }).eq('auth_id', authUser.id);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
+    }
+  }
+
+  Future<void> renameFamily(String name) async {
+    if (state.family == null) return;
+    
+    try {
+      await _supabase.from('families').update({
+        'name': name,
+      }).eq('id', state.family!.id);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to rename family: $e');
+    }
+  }
+
+  Future<void> regenerateFamilyInviteCode() async {
+    if (state.family == null) return;
+    
+    try {
+      final newInviteCode = _generateInviteCode();
+      await _supabase.from('families').update({
+        'invite_code': newInviteCode,
+      }).eq('id', state.family!.id);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to regenerate invite code: $e');
     }
   }
 }

@@ -48,4 +48,20 @@ class Auth extends _$Auth {
   Future<void> resetPassword(String email) async {
     await _supabase.auth.resetPasswordForEmail(email);
   }
+
+  Future<void> updatePassword(String newPassword, {String? currentPassword}) async {
+    if (currentPassword != null && state?.email != null) {
+      // Re-authenticate to verify the current password
+      await _supabase.auth.signInWithPassword(
+        email: state!.email!,
+        password: currentPassword,
+      );
+    }
+    await _supabase.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  Future<void> deleteAccount() async {
+    await _supabase.rpc('delete_user');
+    await signOut();
+  }
 }

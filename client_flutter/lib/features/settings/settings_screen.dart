@@ -21,6 +21,267 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(authProvider.notifier).signOut();
   }
 
+  Future<void> _showEditProfileDialog() async {
+    final familyState = ref.read(familyProvider);
+    final userProfile = familyState.currentUserProfile;
+    if (userProfile == null) return;
+
+    final nameController = TextEditingController(text: userProfile.name);
+    String selectedEmoji = userProfile.avatarEmoji;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Edit Profile'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              const Text('Pick an Emoji'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: ['😊', '😎', '🐱', '🐶', '🦄', '🚀', '🎨', '🍕'].map((emoji) {
+                  return InkWell(
+                    onTap: () => setState(() => selectedEmoji = emoji),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: selectedEmoji == emoji ? Theme.of(context).colorScheme.primaryContainer : null,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: selectedEmoji == emoji ? Theme.of(context).colorScheme.primary : Colors.transparent),
+                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  await ref.read(familyProvider.notifier).updateProfile(name, selectedEmoji);
+                  if (mounted) Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRenameFamilyDialog() async {
+    final familyState = ref.read(familyProvider);
+    if (familyState.family == null) return;
+
+    final controller = TextEditingController(text: familyState.family!.name);
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename Family'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Family Name', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                await ref.read(familyProvider.notifier).renameFamily(name);
+                if (mounted) Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRegenerateCodeConfirmation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('New Invite Code'),
+        content: const Text('Are you sure you want to generate a new invite code? The old one will stop working immediately.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError),
+            child: const Text('Regenerate'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(familyProvider.notifier).regenerateFamilyInviteCode();
+    }
+  }
+
+  Future<void> _showChangePasswordDialog() async {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Change Password'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 8),
+                TextField(
+                  controller: currentPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Current Password',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'New Password',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock_reset),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Confirm New Password',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.check_circle_outline),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      final current = currentPasswordController.text;
+                      final newPass = newPasswordController.text;
+                      final confirm = confirmPasswordController.text;
+
+                      if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please fill all fields')),
+                        );
+                        return;
+                      }
+
+                      if (newPass.length < 6) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('New password must be at least 6 characters')),
+                        );
+                        return;
+                      }
+
+                      if (newPass != confirm) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('New passwords do not match')),
+                        );
+                        return;
+                      }
+
+                      setState(() => isLoading = true);
+                      try {
+                        await ref.read(authProvider.notifier).updatePassword(
+                              newPass,
+                              currentPassword: current,
+                            );
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Password updated successfully'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          setState(() => isLoading = false);
+                          String errorMessage = 'Failed to update password';
+                          if (e.toString().contains('Invalid login credentials')) {
+                            errorMessage = 'Current password is incorrect';
+                          } else if (e.toString().contains('New password should be different')) {
+                            errorMessage = 'New password must be different from current password';
+                          }
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(errorMessage),
+                              backgroundColor: Theme.of(context).colorScheme.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isLoading
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Update'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDeleteAccountConfirmation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete Account', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        content: const Text('DANGER: This will permanently delete your account, your family (if you are the creator), and all associated data. This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError),
+            child: const Text('Delete Everything'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(authProvider.notifier).deleteAccount();
+    }
+  }
+
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri)) {
@@ -85,9 +346,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       icon: const Icon(Icons.edit),
                       color: theme.colorScheme.primary,
                       style: IconButton.styleFrom(backgroundColor: theme.colorScheme.surfaceContainerHighest),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Edit Profile coming soon')));
-                      },
+                      onPressed: _showEditProfileDialog,
                     ),
                   ],
                 ),
@@ -196,16 +455,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         TextButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rename Family coming soon')));
-                          },
+                          onPressed: _showRenameFamilyDialog,
                           icon: const Icon(Icons.edit, size: 18),
                           label: const Text('Rename'),
                         ),
                         TextButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Regenerate Code coming soon')));
-                          },
+                          onPressed: _showRegenerateCodeConfirmation,
                           icon: const Icon(Icons.refresh, size: 18),
                           label: const Text('New Code'),
                         ),
@@ -254,9 +509,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.lock_reset),
                     title: const Text('Change Password'),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Change Password coming soon')));
-                    },
+                    onTap: _showChangePasswordDialog,
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -284,9 +537,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ListTile(
                     leading: Icon(Icons.delete_forever, color: theme.colorScheme.error),
                     title: Text('Delete Account', style: TextStyle(color: theme.colorScheme.error)),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Delete Account coming soon')));
-                    },
+                    onTap: _showDeleteAccountConfirmation,
                   ),
                 ],
               ),
