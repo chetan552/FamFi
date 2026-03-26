@@ -129,7 +129,7 @@ class FamFiApp extends ConsumerWidget {
           selectedIconTheme: const IconThemeData(color: _teal, size: 24),
           unselectedIconTheme: IconThemeData(color: Colors.blueGrey.shade400, size: 24),
           selectedLabelTextStyle: GoogleFonts.inter(color: _teal, fontWeight: FontWeight.bold, fontSize: 13),
-          unselectedLabelTextStyle: GoogleFonts.inter(color: Colors.blueGrey.shade400, fontWeight: FontWeight.w500, fontSize: 13),
+          unselectedLabelTextStyle: GoogleFonts.inter(color: Colors.blueGrey.shade400, fontWeight: FontWeight.w600, fontSize: 13),
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: Colors.white,
@@ -138,7 +138,7 @@ class FamFiApp extends ConsumerWidget {
             if (states.contains(WidgetState.selected)) {
               return GoogleFonts.inter(color: _teal, fontWeight: FontWeight.bold, fontSize: 12);
             }
-            return GoogleFonts.inter(color: Colors.blueGrey.shade400, fontWeight: FontWeight.w500, fontSize: 12);
+            return GoogleFonts.inter(color: Colors.blueGrey.shade400, fontWeight: FontWeight.w600, fontSize: 12);
           }),
         ),
       ),
@@ -226,7 +226,7 @@ class FamFiApp extends ConsumerWidget {
           selectedIconTheme: const IconThemeData(color: _tealLight, size: 24),
           unselectedIconTheme: const IconThemeData(color: Color(0xFFB0C4CC), size: 24),
           selectedLabelTextStyle: GoogleFonts.inter(color: _tealLight, fontWeight: FontWeight.bold, fontSize: 13),
-          unselectedLabelTextStyle: GoogleFonts.inter(color: const Color(0xFFB0C4CC), fontWeight: FontWeight.w500, fontSize: 13),
+          unselectedLabelTextStyle: GoogleFonts.inter(color: const Color(0xFFB0C4CC), fontWeight: FontWeight.w600, fontSize: 13),
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: const Color(0xFF15262C),
@@ -235,7 +235,7 @@ class FamFiApp extends ConsumerWidget {
             if (states.contains(WidgetState.selected)) {
               return GoogleFonts.inter(color: _tealLight, fontWeight: FontWeight.bold, fontSize: 12);
             }
-            return GoogleFonts.inter(color: const Color(0xFFB0C4CC), fontWeight: FontWeight.w500, fontSize: 12);
+            return GoogleFonts.inter(color: const Color(0xFFB0C4CC), fontWeight: FontWeight.w600, fontSize: 12);
           }),
         ),
       ),
