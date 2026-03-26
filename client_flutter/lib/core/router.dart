@@ -23,6 +23,7 @@ import '../features/family/interest_settings_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/settings/google_tasks_screen.dart';
 import '../features/settings/google_callback_screen.dart';
+import '../features/landing/landing_screen.dart';
 import '../features/mentor/money_mentor_screen.dart';
 import 'navigation_scaffold.dart';
 
@@ -52,13 +53,18 @@ GoRouter appRouter(Ref ref) {
 
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/signup' ||
-          state.matchedLocation == '/child-login';
+          state.matchedLocation == '/child-login' ||
+          state.matchedLocation == '/welcome';
 
-      if (!isLoggedIn && !isAuthRoute) return '/login';
+      if (!isLoggedIn && !isAuthRoute) return '/welcome';
       if (isLoggedIn && isAuthRoute) return '/';
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const LandingScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
