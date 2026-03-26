@@ -231,7 +231,7 @@ class _FeaturesSection extends StatelessWidget {
     ('🪙', 'Earn Pocket Money', 'Kids complete chores set by parents and earn coins straight into their virtual piggy bank — no cash needed.'),
     ('🪣', 'Save in Fun Buckets', 'Split earnings into Saving, Spending, and Giving piggy banks automatically so kids see exactly where money lives.'),
     ('📈', 'Watch Money Grow', 'Parents can set a family interest rate so kids see their savings balance grow over time, just like a real bank.'),
-    ('🤖', 'AI Money Mentor', 'A friendly AI coach that helps kids understand their money, set goals, and learn smart saving habits along the way.'),
+    ('🤖', 'AI Coach', 'A friendly AI coach that helps kids understand their money, set goals, and learn smart saving habits along the way.'),
   ];
 
   @override
