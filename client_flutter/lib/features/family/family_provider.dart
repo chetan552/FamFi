@@ -129,8 +129,9 @@ class FamilyNotifier extends _$FamilyNotifier {
         loading: false,
       );
       
-      // Also fetch interest settings seamlessly
+      // Also fetch interest settings and check Google connection status
       await fetchInterestSettings();
+      await checkGoogleConnection();
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
