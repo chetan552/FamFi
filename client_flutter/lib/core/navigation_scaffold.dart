@@ -3,13 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/family/family_provider.dart';
 
-class NavigationScaffold extends ConsumerWidget {
+class NavigationScaffold extends ConsumerStatefulWidget {
   const NavigationScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NavigationScaffold> createState() => _NavigationScaffoldState();
+}
+
+class _NavigationScaffoldState extends ConsumerState<NavigationScaffold> {
+  StatefulNavigationShell get navigationShell => widget.navigationShell;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure family data is loaded no matter which tab URL the user lands on
+    // (including direct browser refreshes to /chores, /payday, /activity, etc.)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(familyProvider.notifier).fetchFamily();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDesktop = MediaQuery.of(context).size.width >= 800;
     final familyState = ref.watch(familyProvider);

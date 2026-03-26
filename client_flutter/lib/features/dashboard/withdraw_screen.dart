@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../family/family_provider.dart';
+import '../../core/models/models.dart';
 
 class WithdrawScreen extends ConsumerStatefulWidget {
   final String? preselectedChildId;
@@ -30,9 +31,8 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     });
   }
 
-  double _getBucketBalance(String childIdParam, String templateIdParam) {
-    final state = ref.read(familyProvider);
-    final bucket = state.buckets.where((b) => b.childId == childIdParam && b.templateId == templateIdParam).firstOrNull;
+  double _getBucketBalanceFromState(FamilyState familyState, String childIdParam, String templateIdParam) {
+    final bucket = familyState.buckets.where((b) => b.childId == childIdParam && b.templateId == templateIdParam).firstOrNull;
     return bucket?.cachedBalance ?? 0.0;
   }
 
@@ -53,7 +53,8 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
       return;
     }
 
-    final balance = _getBucketBalance(_childId!, _templateId!);
+    final currentState = ref.read(familyProvider);
+    final balance = _getBucketBalanceFromState(currentState, _childId!, _templateId!);
     if (amount > balance) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Amount exceeds available balance of \$${balance.toStringAsFixed(2)}.')));
       return;
@@ -81,10 +82,12 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     final state = ref.watch(familyProvider);
 
     final selectedChild = state.children.where((c) => c.id == _childId).firstOrNull;
-    final selectedBucketBalance = (_childId != null && _templateId != null) ? _getBucketBalance(_childId!, _templateId!) : null;
-    
-    final bucketsWithBalance = _childId != null 
-        ? state.bucketTemplates.where((bt) => _getBucketBalance(_childId!, bt.id) > 0).toList()
+    final selectedBucketBalance = (_childId != null && _templateId != null)
+        ? _getBucketBalanceFromState(state, _childId!, _templateId!)
+        : null;
+
+    final List<BucketTemplate> bucketsWithBalance = _childId != null
+        ? state.bucketTemplates.where((bt) => _getBucketBalanceFromState(state, _childId!, bt.id) > 0).toList()
         : [];
 
     return Scaffold(
@@ -144,7 +147,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                         Wrap(
                           spacing: 8, runSpacing: 8,
                           children: bucketsWithBalance.map((bt) {
-                            final balance = _getBucketBalance(_childId!, bt.id);
+                            final balance = _getBucketBalanceFromState(state, _childId!, bt.id);
                             return ChoiceChip(
                               label: Text('${bt.emoji} ${bt.name} · \$${balance.toStringAsFixed(2)}'),
                               selected: _templateId == bt.id,
@@ -173,6 +176,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                       const SizedBox(height: 16),
                       TextField(
                         controller: _amountController,
+                        onChanged: (value) => setState(() {}),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         decoration: const InputDecoration(
                           labelText: 'Amount to Withdraw (\$)',
@@ -183,6 +187,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                       const SizedBox(height: 16),
                       TextField(
                         controller: _noteController,
+                        onChanged: (value) => setState(() {}),
                         decoration: const InputDecoration(
                           labelText: "What's it for? (Optional)",
                           hintText: 'e.g. New toy, Snacks...',
@@ -194,13 +199,18 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
 
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: (_isLoading || _childId == null || _templateId == null || _amountController.text.isEmpty || bucketsWithBalance.isEmpty) ? null : _handleWithdraw,
+                      onPressed: (_isLoading || _childId == null || _templateId == null || _amountController.text.isEmpty) ? null : _handleWithdraw,
                       icon: _isLoading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.outbound),
                       label: Text(_isLoading ? 'Processing...' : 'Confirm Withdrawal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _isLoading ? null : () => context.pop(),
+                      child: const Text('Cancel', style: TextStyle(fontSize: 16)),
                     ),
                   ],
                 ),
