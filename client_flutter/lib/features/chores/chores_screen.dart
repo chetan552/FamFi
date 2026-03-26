@@ -23,14 +23,10 @@ class ChoresScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Family Chores', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.blueAccent, size: 28),
-            onPressed: () {
-              context.push('/add-chore');
-            },
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/add-chore'),
+        child: const Icon(Icons.add),
       ),
       body: RefreshIndicator(
         onRefresh: () async => ref.read(familyProvider.notifier).fetchFamily(),
