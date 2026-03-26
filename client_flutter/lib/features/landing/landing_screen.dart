@@ -122,10 +122,10 @@ class _HeroSection extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🚀', style: TextStyle(fontSize: 13)),
+              const Text('🐷', style: TextStyle(fontSize: 13)),
               const SizedBox(width: 6),
               Text(
-                'AI Money Mentor is live!',
+                'The Digital Piggy Bank for Modern Families',
                 style: TextStyle(color: _teal, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ],
@@ -133,7 +133,7 @@ class _HeroSection extends StatelessWidget {
         ),
         const SizedBox(height: 28),
         Text(
-          'Raise Money-Smart\nKids, Together.',
+          'Your Family\'s Fun\nVirtual Bank! 🏦',
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
           style: GoogleFonts.outfit(
             fontSize: isMobile ? 38 : 58,
@@ -144,7 +144,7 @@ class _HeroSection extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          'FamFi teaches kids to earn through chores, save in smart buckets, and get personalized financial coaching from an AI mentor.',
+          'Kids earn pocket money by completing chores, save it in themed buckets, watch it grow with interest, and learn real money skills — all in one fun family app.',
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
           style: GoogleFonts.inter(
             fontSize: 17,
@@ -163,7 +163,7 @@ class _HeroSection extends StatelessWidget {
             elevation: 0,
             textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          child: const Text('Start for Free'),
+          child: const Text('Open a Family Piggy Bank Account — It\'s Free!'),
         ),
         const SizedBox(height: 28),
         Row(
@@ -171,14 +171,14 @@ class _HeroSection extends StatelessWidget {
           children: [
             _avatarStack(),
             const SizedBox(width: 12),
-            Text(
-              '10,000+ families enrolled',
-              style: TextStyle(
-                color: Colors.blueGrey.shade400,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-            ),
+            // Text(
+            //   '10,000+ families banking together',
+            //   style: TextStyle(
+            //     color: Colors.blueGrey.shade400,
+            //     fontWeight: FontWeight.w500,
+            //     fontSize: 13,
+            //   ),
+            // ),
           ],
         ),
       ],
@@ -227,6 +227,11 @@ class _FeaturesSection extends StatelessWidget {
     ('🪣', 'Goal Buckets', 'Automatically split every dollar earned into Saving, Spending, and Giving buckets you configure.'),
     ('📈', 'Interest & Growth', 'Set family interest rates so kids see their balances grow and learn the magic of compounding.'),
     ('🤖', 'AI Money Mentor', 'An always-on AI coach that answers questions and delivers personalized savings tips for each child.'),
+
+    ('🪙', 'Earn Pocket Money', 'Kids complete chores set by parents and earn coins straight into their virtual piggy bank — no cash needed.'),
+    ('🪣', 'Save in Fun Buckets', 'Split earnings into Saving, Spending, and Giving piggy banks automatically so kids see exactly where money lives.'),
+    ('📈', 'Watch Money Grow', 'Parents can set a family interest rate so kids see their savings balance grow over time, just like a real bank.'),
+    ('🤖', 'AI Money Mentor', 'A friendly AI coach that helps kids understand their money, set goals, and learn smart saving habits along the way.'),
   ];
 
   @override
@@ -240,7 +245,7 @@ class _FeaturesSection extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Everything a Family Needs',
+            'Works Just Like a Real Bank —\nBut Way More Fun',
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: isMobile ? 30 : 42,
@@ -250,7 +255,7 @@ class _FeaturesSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Built to make financial learning feel natural — for parents and kids alike.',
+            'FamFi is a virtual family bank your kids can actually see, touch, and understand.',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 16,
