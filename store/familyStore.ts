@@ -601,20 +601,22 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   processPayday: async (childId, templateDistributions, choreIds) => {
     set({ loading: true });
     try {
+      // Build bucket amounts array for the RPC
+      const bucketAmounts: { bucket_id: string; amount: number }[] = [];
       for (const [templateId, amount] of Object.entries(templateDistributions)) {
         if (amount > 0) {
           const bucketId = await getOrCreateBucket(childId, templateId);
-          const { error } = await supabase
-            .from('transactions')
-            .insert({ bucket_id: bucketId, child_id: childId, amount, type: 'chore_earning', description: 'Payday Distribution', status: 'completed' });
-          if (error) throw error;
+          bucketAmounts.push({ bucket_id: bucketId, amount });
         }
       }
 
-      if (choreIds.length > 0) {
-        const { error } = await supabase.from('chores').update({ status: 'paid' }).in('id', choreIds);
-        if (error) throw error;
-      }
+      // Call SECURITY DEFINER RPC to bypass RLS on transactions table
+      const { error: rpcError } = await supabase.rpc('process_payday', {
+        p_child_id: childId,
+        p_bucket_amounts: bucketAmounts,
+        p_chore_ids: choreIds,
+      });
+      if (rpcError) throw rpcError;
 
       await get().fetchChores();
       await get().fetchAllFamilyBuckets();

@@ -370,39 +370,23 @@ class FamilyNotifier extends _$FamilyNotifier {
     final user = ref.read(authProvider);
     if (user == null || state.family == null) return;
     try {
+      // Build bucket amounts list, creating buckets as needed
+      final bucketAmounts = <Map<String, dynamic>>[];
       for (final entry in distributions.entries) {
         final templateId = entry.key;
         final amount = entry.value;
         if (amount <= 0) continue;
 
-        // Get or Create Bucket
-        final bucketRes = await _supabase.from('buckets').select().eq('child_id', childId).eq('template_id', templateId).maybeSingle();
-        String bucketId;
-        if (bucketRes == null) {
-          final newBucketRes = await _supabase.from('buckets').insert({
-            'child_id': childId,
-            'template_id': templateId,
-            'month': DateTime.now().month,
-            'year': DateTime.now().year,
-          }).select().single();
-          bucketId = newBucketRes['id'];
-        } else {
-          bucketId = bucketRes['id'];
-        }
-
-        // Insert Transaction
-        await _supabase.from('transactions').insert({
-          'bucket_id': bucketId,
-          'amount': amount,
-          'type': 'chore_earning',
-          'description': 'Payday Distribution',
-          'status': 'completed',
-        });
+        final bucketId = await _getOrCreateBucket(childId, templateId);
+        bucketAmounts.add({'bucket_id': bucketId, 'amount': amount});
       }
 
-      if (choreIds.isNotEmpty) {
-        await _supabase.from('chores').update({'status': 'paid'}).inFilter('id', choreIds);
-      }
+      // Use SECURITY DEFINER RPC to bypass transactions RLS
+      await _supabase.rpc('process_payday', params: {
+        'p_child_id': childId,
+        'p_bucket_amounts': bucketAmounts,
+        'p_chore_ids': choreIds,
+      });
 
       await fetchFamily();
     } catch (e) {
