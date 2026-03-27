@@ -16,9 +16,20 @@ class ChoresScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
     final pendingReview = familyState.chores.where((c) => c.status == 'done').toList();
     final activeChores = familyState.chores.where((c) => c.status == 'assigned').toList();
     final completedChores = familyState.chores.where((c) => c.status == 'approved' || c.status == 'paid').toList();
+
+    // Chores expiring today or already overdue (will be auto-deleted at midnight UTC)
+    final expiringCount = activeChores.where((c) {
+      if (c.dueDate == null) return false;
+      final due = DateTime.tryParse(c.dueDate!);
+      if (due == null) return false;
+      return !due.isAfter(todayDate);
+    }).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -68,6 +79,13 @@ class ChoresScreen extends ConsumerWidget {
                           backgroundColor: Colors.orange.withOpacity(0.1),
                           side: BorderSide.none,
                         ),
+                      if (expiringCount > 0)
+                        Chip(
+                          avatar: const Icon(Icons.timer_off_outlined, size: 16, color: Colors.red),
+                          label: Text('$expiringCount expiring'),
+                          backgroundColor: Colors.red.withOpacity(0.1),
+                          side: BorderSide.none,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -114,6 +132,13 @@ class _ChoreCard extends ConsumerWidget {
     final child = familyState.children.where((c) => c.id == chore.assignedToChildId).firstOrNull;
     final isDone = chore.status == 'done';
     final canEdit = chore.status == 'assigned' || chore.status == 'done';
+
+    // Expiry helpers (only meaningful for assigned chores with a due date)
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final due = chore.dueDate != null ? DateTime.tryParse(chore.dueDate!) : null;
+    final isOverdue = chore.status == 'assigned' && due != null && due.isBefore(todayDate);
+    final isExpiringToday = chore.status == 'assigned' && due != null && due.isAtSameMomentAs(todayDate);
 
     Color statusColor;
     String statusLabel;
@@ -171,9 +196,20 @@ class _ChoreCard extends ConsumerWidget {
                                 const SizedBox(width: 12),
                               ],
                               if (chore.dueDate != null) ...[
-                                Icon(Icons.calendar_today, size: 14, color: theme.colorScheme.onSurfaceVariant),
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 14,
+                                  color: isOverdue ? Colors.red : isExpiringToday ? Colors.orange : theme.colorScheme.onSurfaceVariant,
+                                ),
                                 const SizedBox(width: 4),
-                                Text(chore.dueDate!, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
+                                Text(
+                                  chore.dueDate!,
+                                  style: TextStyle(
+                                    color: isOverdue ? Colors.red : isExpiringToday ? Colors.orange : theme.colorScheme.onSurfaceVariant,
+                                    fontSize: 12,
+                                    fontWeight: (isOverdue || isExpiringToday) ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
                               ],
                             ],
                           ),
@@ -187,6 +223,29 @@ class _ChoreCard extends ConsumerWidget {
                     ),
                   ],
                 ),
+                // Expiry warning banner
+                if (isOverdue || isExpiringToday) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isOverdue ? Colors.red.withOpacity(0.08) : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: isOverdue ? Colors.red.withOpacity(0.3) : Colors.orange.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.timer_off_outlined, size: 14, color: isOverdue ? Colors.red : Colors.orange),
+                        const SizedBox(width: 6),
+                        Text(
+                          isOverdue ? '⚠️ Overdue — auto-delete pending' : '⏰ Expires today — complete before midnight!',
+                          style: TextStyle(fontSize: 11, color: isOverdue ? Colors.red[700] : Colors.orange[800], fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   children: [

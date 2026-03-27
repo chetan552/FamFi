@@ -100,53 +100,55 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
             Text('Total Family Bank Balance', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
             const SizedBox(height: 32),
 
-            // Buckets Grid
+            // Buckets
             Align(alignment: Alignment.centerLeft, child: Text('Buckets', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             if (familyState.bucketTemplates.isEmpty)
               Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: theme.colorScheme.outlineVariant, style: BorderStyle.solid)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: theme.colorScheme.outlineVariant)),
                 child: const Padding(
                   padding: EdgeInsets.all(24.0),
                   child: Center(child: Text('No buckets set up yet.')),
                 ),
               )
             else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.1,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                itemCount: familyState.bucketTemplates.length,
-                itemBuilder: (context, index) {
-                  final template = familyState.bucketTemplates[index];
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: familyState.bucketTemplates.map((template) {
                   final bucket = familyState.buckets.where((b) => b.templateId == template.id && b.childId == child.id).firstOrNull;
                   final balance = bucket?.cachedBalance ?? 0.0;
-                  final color = Color(int.parse(template.color.replaceFirst('#', '0xFF')));
-
-                  return Card(
-                    color: color.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: color.withOpacity(0.5), width: 2),
+                  Color color;
+                  try {
+                    color = Color(int.parse(template.color.replaceFirst('#', '0xFF')));
+                  } catch (_) {
+                    color = theme.colorScheme.primary;
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: color.withOpacity(0.5), width: 1.5),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(template.emoji, style: const TextStyle(fontSize: 28)),
-                        const SizedBox(height: 8),
-                        Text(template.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        Text('\$${balance.toStringAsFixed(2)}', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: color)),
+                        Text(template.emoji, style: const TextStyle(fontSize: 20)),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(template.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface)),
+                            Text('\$${balance.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: color)),
+                          ],
+                        ),
                       ],
                     ),
                   );
-                },
+                }).toList(),
               ),
             const SizedBox(height: 32),
 
