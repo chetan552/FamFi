@@ -11,11 +11,13 @@ class Auth extends _$Auth {
   @override
   User? build() {
     // Listen to auth state changes to keep the provider updated
-    _supabase.auth.onAuthStateChange.listen((data) {
+    final subscription = _supabase.auth.onAuthStateChange.listen((data) {
       if (state != data.session?.user) {
         state = data.session?.user;
       }
     });
+    // Cancel the subscription when the provider is disposed to prevent leaks
+    ref.onDispose(() => subscription.cancel());
     return _supabase.auth.currentUser;
   }
 

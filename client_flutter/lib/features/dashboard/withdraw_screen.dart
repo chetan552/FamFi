@@ -20,6 +20,13 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
   bool _isLoading = false;
 
   @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {

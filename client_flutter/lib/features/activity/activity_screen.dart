@@ -35,16 +35,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final familyState = ref.watch(familyProvider);
+    final isLoading = ref.watch(familyProvider.select((s) => s.loading));
+    final transactions = ref.watch(familyProvider.select((s) => s.transactions));
+    final children = ref.watch(familyProvider.select((s) => s.children));
+    final buckets = ref.watch(familyProvider.select((s) => s.buckets));
     final theme = Theme.of(context);
 
-    if (familyState.loading && familyState.transactions.isEmpty) {
+    if (isLoading && transactions.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final filtered = _filter == 'all'
-        ? familyState.transactions
-        : familyState.transactions.where((tx) => tx.type == _filter).toList();
+        ? transactions
+        : transactions.where((tx) => tx.type == _filter).toList();
 
     // Group by Date
     final Map<String, List<Transaction>> groups = {};
@@ -59,13 +62,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
     String getChildName(String? childId, String bucketId) {
       if (childId != null) {
-        final child = familyState.children.where((c) => c.id == childId).firstOrNull;
+        final child = children.where((c) => c.id == childId).firstOrNull;
         return child != null ? '${child.avatarEmoji} ${child.name}' : '👤 Unknown';
       }
       // Infer childId from bucket if possible
-      final bucket = familyState.buckets.where((b) => b.id == bucketId).firstOrNull;
+      final bucket = buckets.where((b) => b.id == bucketId).firstOrNull;
       if (bucket != null) {
-         final child = familyState.children.where((c) => c.id == bucket.childId).firstOrNull;
+         final child = children.where((c) => c.id == bucket.childId).firstOrNull;
          return child != null ? '${child.avatarEmoji} ${child.name}' : '👤 Unknown';
       }
       return '👤 Unknown';
@@ -81,7 +84,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
-                  Text('${familyState.transactions.length} total transactions', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                  Text('${transactions.length} total transactions', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -114,7 +117,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               ),
             ),
 
-            if (familyState.transactions.isEmpty)
+            if (transactions.isEmpty)
               Expanded(
                 child: Center(
                   child: Column(

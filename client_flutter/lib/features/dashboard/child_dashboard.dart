@@ -212,14 +212,7 @@ class ChildDashboard extends ConsumerWidget {
                       .firstOrNull;
                   final balance = bucket?.cachedBalance ?? 0.0;
 
-                  // Parse color safely, fallback to primary
-                  Color templateColor = theme.primaryColor;
-                  try {
-                    if (template.color.startsWith('#')) {
-                      templateColor = Color(int.parse(template.color.substring(1, 7), radix: 16) + 0xFF000000);
-                    }
-                  } catch (_) {}
-
+                  final templateColor = template.parsedColor;
                   return SizedBox(
                     width: (MediaQuery.of(context).size.width - 48) / 2,
                     child: Card(

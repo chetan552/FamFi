@@ -20,6 +20,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _showPassword = false;
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSignup() async {
     setState(() => _error = null);
 

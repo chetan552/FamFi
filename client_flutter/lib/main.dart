@@ -34,13 +34,14 @@ const _coral      = Color(0xFFE85D75);
 class FamFiApp extends ConsumerWidget {
   const FamFiApp({super.key});
 
+  // Cache text themes to avoid recomputation on every build
+  static final _lightTextTheme = GoogleFonts.interTextTheme();
+  static final _darkTextTheme = GoogleFonts.interTextTheme(ThemeData.dark().textTheme);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final themeModeAsync = ref.watch(settingsProvider);
-
-    // Google Fonts text theme (Inter)
-    final baseTextTheme = GoogleFonts.interTextTheme();
 
     return MaterialApp.router(
       title: 'FamFi',
@@ -53,7 +54,7 @@ class FamFiApp extends ConsumerWidget {
       // ── Light Theme ──────────────────────────────────────────────────
       theme: ThemeData(
         useMaterial3: true,
-        textTheme: baseTextTheme,
+        textTheme: _lightTextTheme,
         colorScheme: ColorScheme.fromSeed(
           seedColor: _teal,
           primary: _teal,
@@ -147,7 +148,7 @@ class FamFiApp extends ConsumerWidget {
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        textTheme: _darkTextTheme,
         colorScheme: ColorScheme.fromSeed(
           seedColor: _teal,
           brightness: Brightness.dark,

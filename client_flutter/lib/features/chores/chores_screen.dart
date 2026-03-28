@@ -9,19 +9,20 @@ class ChoresScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final familyState = ref.watch(familyProvider);
+    final isLoading = ref.watch(familyProvider.select((s) => s.loading));
+    final chores = ref.watch(familyProvider.select((s) => s.chores));
     final theme = Theme.of(context);
 
-    if (familyState.loading && familyState.chores.isEmpty) {
+    if (isLoading && chores.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
 
-    final pendingReview = familyState.chores.where((c) => c.status == 'done').toList();
-    final activeChores = familyState.chores.where((c) => c.status == 'assigned').toList();
-    final completedChores = familyState.chores.where((c) => c.status == 'approved' || c.status == 'paid').toList();
+    final pendingReview = chores.where((c) => c.status == 'done').toList();
+    final activeChores = chores.where((c) => c.status == 'assigned').toList();
+    final completedChores = chores.where((c) => c.status == 'approved' || c.status == 'paid').toList();
 
     // Chores expiring today or already overdue (will be auto-deleted at midnight UTC)
     final expiringCount = activeChores.where((c) {
@@ -41,7 +42,7 @@ class ChoresScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async => ref.read(familyProvider.notifier).fetchFamily(),
-        child: familyState.chores.isEmpty
+        child: chores.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -68,7 +69,7 @@ class ChoresScreen extends ConsumerWidget {
                     children: [
                       Chip(
                         avatar: Icon(Icons.list, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                        label: Text('${familyState.chores.length} total'),
+                        label: Text('${chores.length} total'),
                         backgroundColor: theme.colorScheme.surfaceContainerHighest,
                         side: BorderSide.none,
                       ),
@@ -128,8 +129,8 @@ class _ChoreCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final familyState = ref.watch(familyProvider);
-    final child = familyState.children.where((c) => c.id == chore.assignedToChildId).firstOrNull;
+    final children = ref.watch(familyProvider.select((s) => s.children));
+    final child = children.where((c) => c.id == chore.assignedToChildId).firstOrNull;
     final isDone = chore.status == 'done';
     final canEdit = chore.status == 'assigned' || chore.status == 'done';
 
@@ -275,7 +276,9 @@ class _ChoreCard extends ConsumerWidget {
                           try {
                             await ref.read(familyProvider.notifier).deleteChore(chore.id);
                           } catch (e) {
-                             // ignore
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete chore: $e')));
+                            }
                           }
                         },
                       ),
@@ -285,7 +288,9 @@ class _ChoreCard extends ConsumerWidget {
                           try {
                             await ref.read(familyProvider.notifier).updateChoreStatus(chore.id, 'approved');
                           } catch (e) {
-                             // ignore
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to approve chore: $e')));
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(

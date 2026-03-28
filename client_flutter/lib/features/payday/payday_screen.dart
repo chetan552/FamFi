@@ -21,6 +21,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
   
   Map<String, String> errors = {};
   Set<String> paidChildren = {};
+  String? _lastStateHash;
 
   @override
   void dispose() {
@@ -125,20 +126,26 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final familyState = ref.watch(familyProvider);
+    final isLoading = ref.watch(familyProvider.select((s) => s.loading));
+    final children = ref.watch(familyProvider.select((s) => s.children));
+    final chores = ref.watch(familyProvider.select((s) => s.chores));
+    final bucketTemplates = ref.watch(familyProvider.select((s) => s.bucketTemplates));
     final theme = Theme.of(context);
 
     // Re-verify list on rebuild
-    final childrenWithPay = familyState.children.map((child) {
-      final childChores = familyState.chores.where((c) => c.assignedToChildId == child.id && c.status == 'approved').toList();
+    final childrenWithPay = children.map((child) {
+      final childChores = chores.where((c) => c.assignedToChildId == child.id && c.status == 'approved').toList();
       final total = childChores.fold<double>(0, (sum, c) => sum + c.value);
       return (child: child, chores: childChores, total: total);
     }).where((item) => item.total > 0).toList();
 
-    // Trigger recalculation if state changed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _recalculateDistributions();
-    });
+    // Recalculate distributions if family state changed
+    // Use a simple hash to avoid redundant recalculations
+    final stateHash = '${chores.length}_${bucketTemplates.length}_${children.length}';
+    if (_lastStateHash != stateHash) {
+      _lastStateHash = stateHash;
+      _recalculateDistributions();
+    }
 
     if (childrenWithPay.isEmpty) {
       return Scaffold(
@@ -215,16 +222,11 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                   Text('From ${childChores.length} approved chore(s). How should this be split?', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                   const SizedBox(height: 16),
                   
-                  if (familyState.bucketTemplates.isEmpty)
+                  if (bucketTemplates.isEmpty)
                     Text('No buckets created for your family.', style: TextStyle(color: theme.colorScheme.error))
                   else
-                    ...familyState.bucketTemplates.map((bt) {
-                      Color templateColor = theme.primaryColor;
-                      try {
-                        if (bt.color.startsWith('#')) {
-                          templateColor = Color(int.parse(bt.color.substring(1, 7), radix: 16) + 0xFF000000);
-                        }
-                      } catch (_) {}
+                    ...bucketTemplates.map((bt) {
+                      final templateColor = bt.parsedColor;
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -261,8 +263,8 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                         ),
-                        onPressed: familyState.loading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, familyState.bucketTemplates.map((t) => t.id).toList()),
-                        child: familyState.loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: isLoading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, bucketTemplates.map((t) => t.id).toList()),
+                        child: isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],

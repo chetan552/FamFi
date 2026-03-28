@@ -13,13 +13,8 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(familyProvider.notifier).fetchFamily();
-    });
-  }
+  // Data loading is handled by NavigationScaffold.initState()
+  // No need to duplicate fetchFamily() here
 
   @override
   Widget build(BuildContext context) {

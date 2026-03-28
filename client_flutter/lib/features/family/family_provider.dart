@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 import 'dart:math';
@@ -52,6 +53,7 @@ class FamilyState {
     List<GoogleTaskMapping>? googleMappings,
     bool? loading,
     String? error,
+    bool clearError = false,
   }) {
     return FamilyState(
       family: family ?? this.family,
@@ -66,7 +68,7 @@ class FamilyState {
       googleConnected: googleConnected ?? this.googleConnected,
       googleMappings: googleMappings ?? this.googleMappings,
       loading: loading ?? this.loading,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -74,6 +76,7 @@ class FamilyState {
 @Riverpod(keepAlive: true)
 class FamilyNotifier extends _$FamilyNotifier {
   final _supabase = supa.Supabase.instance.client;
+  bool _isFetching = false;
 
   @override
   FamilyState build() {
@@ -84,7 +87,11 @@ class FamilyNotifier extends _$FamilyNotifier {
     final authUser = ref.read(authProvider);
     if (authUser == null) return;
 
-    state = state.copyWith(loading: true);
+    // Guard against duplicate concurrent fetches
+    if (_isFetching) return;
+    _isFetching = true;
+
+    state = state.copyWith(loading: true, clearError: true);
 
     try {
       final profileRes = await _supabase.from('users').select().eq('auth_id', authUser.id).maybeSingle();
@@ -95,19 +102,28 @@ class FamilyNotifier extends _$FamilyNotifier {
 
       final familyId = profileRes['family_id'];
 
-      final familyRes = await _supabase.from('families').select().eq('id', familyId).single();
-      final membersRes = await _supabase.from('users').select().eq('family_id', familyId).eq('role', 'parent').order('created_at');
-      final childrenRes = await _supabase.from('users').select().eq('family_id', familyId).eq('role', 'child').order('created_at');
-      final choresRes = await _supabase.from('chores').select().eq('family_id', familyId).order('created_at');
-      final templatesRes = await _supabase.from('bucket_templates').select().eq('family_id', familyId).eq('is_active', true).order('sort_order');
+      // Run all independent queries in parallel
+      final results = await Future.wait([
+        _supabase.from('families').select().eq('id', familyId).single(),
+        _supabase.from('users').select().eq('family_id', familyId).eq('role', 'parent').order('created_at'),
+        _supabase.from('users').select().eq('family_id', familyId).eq('role', 'child').order('created_at'),
+        _supabase.from('chores').select().eq('family_id', familyId).order('created_at'),
+        _supabase.from('bucket_templates').select().eq('family_id', familyId).eq('is_active', true).order('sort_order'),
+      ]);
+
+      final familyRes = results[0] as Map<String, dynamic>;
+      final membersRes = results[1] as List;
+      final childrenRes = results[2] as List;
+      final choresRes = results[3] as List;
+      final templatesRes = results[4] as List;
       
       final now = DateTime.now();
-      final childIds = (childrenRes as List).map((c) => c['id']).toList();
+      final childIds = childrenRes.map((c) => c['id']).toList();
       List<dynamic> bucketsRes = [];
       List<dynamic> transactionsRes = [];
       if (childIds.isNotEmpty) {
         bucketsRes = await _supabase.from('buckets').select().inFilter('child_id', childIds).eq('month', now.month).eq('year', now.year);
-        // Fetch transctions associated with these kids
+        // Fetch transactions associated with these kids
         final bucketIds = bucketsRes.map((b) => b['id']).toList();
         if (bucketIds.isNotEmpty) {
            transactionsRes = await _supabase.from('transactions').select().inFilter('bucket_id', bucketIds).order('created_at', ascending: false).limit(100);
@@ -117,10 +133,10 @@ class FamilyNotifier extends _$FamilyNotifier {
       state = state.copyWith(
         family: Family.fromJson(familyRes),
         currentUserProfile: UserProfile.fromJson(profileRes),
-        members: (membersRes as List).map((m) => UserProfile.fromJson(m)).toList(),
+        members: membersRes.map((m) => UserProfile.fromJson(m)).toList(),
         children: childrenRes.map((c) => UserProfile.fromJson(c)).toList(),
-        chores: (choresRes as List).map((c) => Chore.fromJson(c)).toList(),
-        bucketTemplates: (templatesRes as List).map((t) => BucketTemplate.fromJson(t)).toList(),
+        chores: choresRes.map((c) => Chore.fromJson(c)).toList(),
+        bucketTemplates: templatesRes.map((t) => BucketTemplate.fromJson(t)).toList(),
         buckets: bucketsRes.map((b) => Bucket.fromJson(b)).toList(),
         transactions: transactionsRes.map((tx) => Transaction.fromJson(tx)).toList(),
         interestSettings: state.interestSettings,
@@ -129,11 +145,15 @@ class FamilyNotifier extends _$FamilyNotifier {
         loading: false,
       );
       
-      // Also fetch interest settings and check Google connection status
-      await fetchInterestSettings();
-      await checkGoogleConnection();
+      // Fetch interest settings and check Google connection in parallel
+      await Future.wait([
+        fetchInterestSettings(),
+        checkGoogleConnection(),
+      ]);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
+    } finally {
+      _isFetching = false;
     }
   }
 
@@ -272,8 +292,8 @@ class FamilyNotifier extends _$FamilyNotifier {
     try {
       final token = await _supabase.from('google_tokens').select('id').eq('user_id', userId).maybeSingle();
       state = state.copyWith(googleConnected: token != null);
-    } catch (e) {
-      // Ignore
+    } catch (e, stack) {
+      debugPrint('Error in checkGoogleConnection: $e\n$stack');
     }
   }
 
@@ -283,8 +303,8 @@ class FamilyNotifier extends _$FamilyNotifier {
       final data = await _supabase.from('google_task_mappings').select('*').eq('family_id', state.family!.id);
       final mappings = (data as List).map((m) => GoogleTaskMapping.fromJson(m)).toList();
       state = state.copyWith(googleMappings: mappings);
-    } catch (e) {
-      // Ignore error
+    } catch (e, stack) {
+      debugPrint('Error in fetchGoogleMappings: $e\n$stack');
     }
   }
 

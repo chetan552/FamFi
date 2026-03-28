@@ -15,8 +15,11 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Only fetch if data hasn't loaded yet (e.g., direct deep-link)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(familyProvider.notifier).fetchFamily();
+      if (ref.read(familyProvider).family == null) {
+        ref.read(familyProvider.notifier).fetchFamily();
+      }
     });
   }
 
@@ -45,6 +48,71 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
             child: Text('Remove', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditChildDialog(String currentName, String currentEmoji) {
+    final nameController = TextEditingController(text: currentName);
+    String selectedEmoji = currentEmoji;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit Child'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              const Text('Pick an Emoji'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: ['😊', '😎', '🐱', '🐶', '🦄', '🚀', '🎨', '🍕', '⭐', '🎮', '🏀', '🎸'].map((emoji) {
+                  return InkWell(
+                    onTap: () => setDialogState(() => selectedEmoji = emoji),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: selectedEmoji == emoji ? Theme.of(context).colorScheme.primaryContainer : null,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: selectedEmoji == emoji ? Theme.of(context).colorScheme.primary : Colors.transparent),
+                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  try {
+                    await ref.read(familyProvider.notifier).updateChild(widget.childId, name, selectedEmoji);
+                    if (mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name updated!')));
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  }
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -84,7 +152,10 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
       appBar: AppBar(
         title: Text("${child.name}'s Profile"),
         actions: [
-          IconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => _showEditChildDialog(child.name, child.avatarEmoji),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -119,12 +190,7 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
                 children: familyState.bucketTemplates.map((template) {
                   final bucket = familyState.buckets.where((b) => b.templateId == template.id && b.childId == child.id).firstOrNull;
                   final balance = bucket?.cachedBalance ?? 0.0;
-                  Color color;
-                  try {
-                    color = Color(int.parse(template.color.replaceFirst('#', '0xFF')));
-                  } catch (_) {
-                    color = theme.colorScheme.primary;
-                  }
+                  final color = template.parsedColor;
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(

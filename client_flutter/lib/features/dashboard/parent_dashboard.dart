@@ -11,13 +11,8 @@ class ParentDashboard extends ConsumerStatefulWidget {
 }
 
 class _ParentDashboardState extends ConsumerState<ParentDashboard> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(familyProvider.notifier).fetchFamily();
-    });
-  }
+  // Data loading is handled by NavigationScaffold.initState()
+  // No need to duplicate fetchFamily() here
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +23,21 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final balancesByChild = <String, double>{};
+    for (final b in familyState.buckets) {
+      balancesByChild[b.childId] = (balancesByChild[b.childId] ?? 0.0) + b.cachedBalance;
+    }
+
+    final activeChoresByChild = <String, int>{};
+    for (final c in familyState.chores) {
+      if (c.status == 'assigned') {
+        activeChoresByChild[c.assignedToChildId] = (activeChoresByChild[c.assignedToChildId] ?? 0) + 1;
+      }
+    }
+
     final children = familyState.children;
     final familyTotal = children.fold<double>(
-        0,
-        (sum, child) =>
-            sum +
-            familyState.buckets
-                .where((b) => b.childId == child.id)
-                .fold(0, (s, b) => s + b.cachedBalance));
+        0, (sum, child) => sum + (balancesByChild[child.id] ?? 0.0));
 
     final activeChores = familyState.chores.where((c) => c.status != 'paid').length;
     final pendingReview = familyState.chores.where((c) => c.status == 'done').length;
@@ -169,9 +171,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
               )
             else
               ...children.map((child) {
-                final balance = familyState.buckets
-                    .where((b) => b.childId == child.id)
-                    .fold<double>(0, (s, b) => s + b.cachedBalance);
+                final balance = balancesByChild[child.id] ?? 0.0;
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -189,7 +189,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                           child: Text(child.avatarEmoji, style: const TextStyle(fontSize: 24)),
                         ),
                         title: Text(child.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${familyState.chores.where((c) => c.assignedToChildId == child.id && c.status == 'assigned').length} active chores'),
+                        subtitle: Text('${activeChoresByChild[child.id] ?? 0} active chores'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -258,7 +258,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                 spacing: 8,
                 runSpacing: 8,
                 children: familyState.bucketTemplates.map((bt) => Chip(
-                  avatar: CircleAvatar(backgroundColor: Color(int.parse(bt.color.replaceFirst('#', '0xFF'))), radius: 6),
+                  avatar: CircleAvatar(backgroundColor: bt.parsedColor, radius: 6),
                   label: Text('${bt.emoji}  ${bt.name}'),
                   backgroundColor: theme.colorScheme.surface,
                 )).toList(),
