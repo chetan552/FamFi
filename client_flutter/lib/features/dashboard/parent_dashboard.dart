@@ -276,6 +276,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                 _ActionCard(icon: Icons.card_giftcard, label: 'Gift', color: theme.colorScheme.secondary, route: '/deposit-gift'),
                 _ActionCard(icon: Icons.upload_outlined, label: 'Withdraw', color: theme.colorScheme.error, route: '/withdraw'),
                 _ActionCard(icon: Icons.percent, label: 'Interest', color: Colors.deepPurpleAccent, route: '/interest-settings'),
+                _ActionCard(icon: Icons.dashboard, label: 'Dashboard', color: Colors.deepOrange, route: '/family-tasks-dashboard'),
               ],
             ),
             const SizedBox(height: 48),

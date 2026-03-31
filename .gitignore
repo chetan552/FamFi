@@ -48,3 +48,5 @@ walkthrough1.md
 
 # FVM Version Cache
 .fvm/
+
+*.py

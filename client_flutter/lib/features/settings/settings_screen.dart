@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/settings_provider.dart';
 import 'package:flutter/services.dart';
 
-
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -240,7 +239,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           } else if (e.toString().contains('New password should be different')) {
                             errorMessage = 'New password must be different from current password';
                           }
-                          
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(errorMessage),
@@ -282,12 +280,87 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _showDefaultChoreAmountDialog() async {
+    final current = ref.read(defaultChoreAmountProvider).asData?.value ?? 5.0;
+    final controller = TextEditingController(text: current.toStringAsFixed(2));
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Default Chore Reward'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Default amount (\$)',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.attach_money),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              final amount = double.tryParse(controller.text.trim());
+              if (amount != null && amount >= 0) {
+                await ref.read(defaultChoreAmountProvider.notifier).setAmount(amount);
+                if (mounted) Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmAndRun(
+    String title,
+    String message,
+    String confirmLabel,
+    Color confirmColor,
+    Future<void> Function() action,
+    String successMessage,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: confirmColor, foregroundColor: Colors.white),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await action();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(successMessage), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = ref.watch(authProvider);
     final familyState = ref.watch(familyProvider);
+    final defaultAmount = ref.watch(defaultChoreAmountProvider).asData?.value ?? 5.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -299,10 +372,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // My Profile
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Text('My Profile', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            ),
+            _sectionLabel('My Profile', theme),
             Card(
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -315,12 +385,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.colorScheme.primary.withOpacity(0.15),
-                            theme.colorScheme.primary.withOpacity(0.05),
-                          ],
-                        ),
+                        color: theme.colorScheme.primaryContainer,
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
@@ -346,12 +411,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
-            
+
             // Appearance
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Text('Appearance', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            ),
+            _sectionLabel('Appearance', theme),
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -385,13 +447,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             // Family
             if (familyState.family != null) ...[
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 8),
-                child: Text('Family', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              ),
+              _sectionLabel('Family', theme),
               Card(
                 elevation: 0,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                color: theme.colorScheme.surfaceContainerHighest,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
                 margin: const EdgeInsets.only(bottom: 24),
                 child: Column(
@@ -401,12 +460,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(familyState.family!.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              Text('Members can join with your code', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
-                            ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(familyState.family!.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text('Members can join with your code', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
+                              ],
+                            ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -415,8 +476,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 SelectableText(
-                                  familyState.family!.inviteCode, 
-                                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: theme.colorScheme.onPrimaryContainer, fontSize: 18)
+                                  familyState.family!.inviteCode,
+                                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: theme.colorScheme.onPrimaryContainer, fontSize: 18),
                                 ),
                                 const SizedBox(width: 4),
                                 IconButton(
@@ -440,7 +501,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ],
                             ),
                           ),
-
                         ],
                       ),
                     ),
@@ -466,13 +526,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
 
             // Integrations
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8, top: 8),
-              child: Text('Integrations', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            ),
+            _sectionLabel('Integrations', theme, topPadding: 8),
             Card(
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              color: theme.colorScheme.surfaceContainerHighest,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
               margin: const EdgeInsets.only(bottom: 24),
               child: Column(
@@ -488,14 +545,92 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // Account
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Text('Account', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            ),
+            // Data Management
+            _sectionLabel('Data Management', theme),
             Card(
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              color: theme.colorScheme.surfaceContainerHighest,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
+              margin: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                children: [
+                  // Default chore amount — not destructive
+                  ListTile(
+                    leading: const Icon(Icons.attach_money),
+                    title: const Text('Default Chore Reward'),
+                    subtitle: Text('\$${defaultAmount.toStringAsFixed(2)} — pre-filled when creating chores'),
+                    trailing: const Icon(Icons.chevron_right, size: 16),
+                    onTap: _showDefaultChoreAmountDialog,
+                  ),
+                  const Divider(height: 1),
+                  // Clear completed chores — moderate risk
+                  ListTile(
+                    leading: Icon(Icons.check_circle_outline, color: Colors.orange[700]),
+                    title: Text('Clear Completed Chores', style: TextStyle(color: Colors.orange[700])),
+                    subtitle: const Text('Remove all done & approved chores'),
+                    onTap: () => _confirmAndRun(
+                      'Clear Completed Chores',
+                      'This will permanently delete all chores marked as done or approved. Assigned chores will not be affected.',
+                      'Clear',
+                      Colors.orange[700]!,
+                      () => ref.read(familyProvider.notifier).clearCompletedChores(),
+                      'Completed chores cleared.',
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  // Clear all chores — high risk
+                  ListTile(
+                    leading: Icon(Icons.playlist_remove, color: theme.colorScheme.error),
+                    title: Text('Clear All Chores', style: TextStyle(color: theme.colorScheme.error)),
+                    subtitle: const Text('Remove every chore for all children'),
+                    onTap: () => _confirmAndRun(
+                      'Clear All Chores',
+                      'This will permanently delete ALL chores for every child, including ones currently assigned. This cannot be undone.',
+                      'Delete All',
+                      theme.colorScheme.error,
+                      () => ref.read(familyProvider.notifier).clearAllChores(),
+                      'All chores cleared.',
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  // Clear transaction history — high risk
+                  ListTile(
+                    leading: Icon(Icons.receipt_long_outlined, color: theme.colorScheme.error),
+                    title: Text('Clear Transaction History', style: TextStyle(color: theme.colorScheme.error)),
+                    subtitle: const Text('Deletes all transactions and resets balances to \$0'),
+                    onTap: () => _confirmAndRun(
+                      'Clear Transaction History',
+                      'This will permanently delete all transactions and reset every bucket balance to \$0. This cannot be undone.',
+                      'Delete All',
+                      theme.colorScheme.error,
+                      () => ref.read(familyProvider.notifier).clearTransactionHistory(),
+                      'Transaction history cleared and balances reset.',
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  // Reset interest settings — moderate risk
+                  ListTile(
+                    leading: Icon(Icons.percent, color: Colors.orange[700]),
+                    title: Text('Reset Interest Settings', style: TextStyle(color: Colors.orange[700])),
+                    subtitle: const Text('Remove all interest & match rates'),
+                    onTap: () => _confirmAndRun(
+                      'Reset Interest Settings',
+                      'This will delete all interest and parent-match settings for every savings bucket. You can reconfigure them in Interest Settings.',
+                      'Reset',
+                      Colors.orange[700]!,
+                      () => ref.read(familyProvider.notifier).resetInterestSettings(),
+                      'Interest settings reset.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Account
+            _sectionLabel('Account', theme),
+            Card(
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerHighest,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
               margin: const EdgeInsets.only(bottom: 24),
               child: Column(
@@ -537,22 +672,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            // About & Legal
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Text('Legal & About', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            ),
+            // Legal & About
+            _sectionLabel('Legal & About', theme),
             Card(
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              color: theme.colorScheme.surfaceContainerHighest,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
               margin: const EdgeInsets.only(bottom: 24),
               child: Column(
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.info_outline),
-                    title: const Text('Version'),
-                    subtitle: const Text('1.0.0'),
+                  const ListTile(
+                    leading: Icon(Icons.info_outline),
+                    title: Text('Version'),
+                    subtitle: Text('1.0.0'),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -571,11 +703,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _sectionLabel(String label, ThemeData theme, {double topPadding = 0}) {
+    return Padding(
+      padding: EdgeInsets.only(left: 4, bottom: 8, top: topPadding),
+      child: Text(label, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
     );
   }
 

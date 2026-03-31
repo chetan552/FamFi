@@ -640,6 +640,55 @@ class FamilyNotifier extends _$FamilyNotifier {
     }
   }
 
+  Future<void> clearCompletedChores() async {
+    if (state.family == null) return;
+    try {
+      await _supabase.from('chores')
+          .delete()
+          .eq('family_id', state.family!.id)
+          .inFilter('status', ['done', 'approved']);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to clear completed chores: $e');
+    }
+  }
+
+  Future<void> clearAllChores() async {
+    if (state.family == null) return;
+    try {
+      await _supabase.from('chores').delete().eq('family_id', state.family!.id);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to clear all chores: $e');
+    }
+  }
+
+  Future<void> clearTransactionHistory() async {
+    if (state.family == null) return;
+    try {
+      final bucketIds = state.buckets.map((b) => b.id).where((id) => id.isNotEmpty).toList();
+      if (bucketIds.isNotEmpty) {
+        await _supabase.from('transactions').delete().inFilter('bucket_id', bucketIds);
+        for (final bucketId in bucketIds) {
+          await _supabase.from('buckets').update({'cached_balance': 0}).eq('id', bucketId);
+        }
+      }
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to clear transaction history: $e');
+    }
+  }
+
+  Future<void> resetInterestSettings() async {
+    if (state.family == null) return;
+    try {
+      await _supabase.from('interest_settings').delete().eq('family_id', state.family!.id);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to reset interest settings: $e');
+    }
+  }
+
   Future<void> regenerateFamilyInviteCode() async {
     if (state.family == null) return;
     

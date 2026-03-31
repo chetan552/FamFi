@@ -12,7 +12,7 @@ class Settings extends _$Settings {
   FutureOr<ThemeMode> build() async {
     final prefs = await SharedPreferences.getInstance();
     final savedMode = prefs.getString(_themeKey);
-    
+
     if (savedMode == 'light') return ThemeMode.light;
     if (savedMode == 'dark') return ThemeMode.dark;
     return ThemeMode.system;
@@ -22,5 +22,22 @@ class Settings extends _$Settings {
     state = AsyncValue.data(mode);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_themeKey, mode.name);
+  }
+}
+
+@riverpod
+class DefaultChoreAmount extends _$DefaultChoreAmount {
+  static const _key = 'default_chore_amount';
+
+  @override
+  FutureOr<double> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_key) ?? 5.0;
+  }
+
+  Future<void> setAmount(double amount) async {
+    state = AsyncValue.data(amount);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_key, amount);
   }
 }

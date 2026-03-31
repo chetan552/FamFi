@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../family/family_provider.dart';
+import '../../core/settings_provider.dart';
 
 class AddChoreScreen extends ConsumerStatefulWidget {
   const AddChoreScreen({super.key});
@@ -27,6 +28,10 @@ class _AddChoreScreenState extends ConsumerState<AddChoreScreen> {
       final children = ref.read(familyProvider).children;
       if (children.length == 1 && mounted) {
         setState(() => _selectedChildId = children.first.id);
+      }
+      final defaultAmount = ref.read(defaultChoreAmountProvider).asData?.value;
+      if (defaultAmount != null && defaultAmount > 0 && mounted) {
+        _valueController.text = defaultAmount.toStringAsFixed(2);
       }
     });
   }

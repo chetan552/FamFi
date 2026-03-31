@@ -25,6 +25,7 @@ import '../features/settings/google_tasks_screen.dart';
 import '../features/settings/google_callback_screen.dart';
 import '../features/landing/landing_screen.dart';
 import '../features/mentor/money_mentor_screen.dart';
+import '../features/dashboard/family_tasks_dashboard.dart';
 import 'navigation_scaffold.dart';
 
 part 'router.g.dart';
@@ -91,6 +92,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/mentor',
         builder: (context, state) => const MoneyMentorScreen(),
+      ),
+      GoRoute(
+        path: '/family-tasks-dashboard',
+        builder: (context, state) => const FamilyTasksDashboard(),
       ),
       GoRoute(
         path: '/add-chore',
