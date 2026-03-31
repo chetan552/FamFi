@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../family/family_provider.dart';
+import '../../core/settings_provider.dart';
 
 class ParentDashboard extends ConsumerStatefulWidget {
   const ParentDashboard({super.key});
@@ -77,7 +78,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                   ? '${familyState.family!.name} Bank'
                   : 'The ${familyState.family?.name ?? 'Our'} Family Bank',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -90,7 +91,9 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                 letterSpacing: -1,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            _SetupChecklist(familyState: familyState),
+            const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -100,7 +103,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF2B9EB3).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6)),
+                  BoxShadow(color: const Color(0xFF2B9EB3).withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6)),
                 ],
               ),
               child: Padding(
@@ -109,7 +112,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                   children: [
                     Text(
                       'FAMILY TOTAL SAVINGS',
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), letterSpacing: 1.5, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), letterSpacing: 1.5, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -124,9 +127,9 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _StatItem(value: children.length.toString(), label: 'Children'),
-                        Container(width: 1, height: 40, color: Colors.white.withOpacity(0.2)),
+                        Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.2)),
                         _StatItem(value: activeChores.toString(), label: 'Active Chores'),
-                        Container(width: 1, height: 40, color: Colors.white.withOpacity(0.2)),
+                        Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.2)),
                         _StatItem(
                           value: pendingReview.toString(),
                           label: 'Needs Review',
@@ -196,7 +199,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -220,7 +223,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
               const SizedBox(height: 8),
               Card(
                 elevation: 0,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: theme.colorScheme.outlineVariant)),
                 child: Column(
                   children: [
@@ -280,6 +283,126 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
               ],
             ),
             const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SetupChecklist extends ConsumerWidget {
+  final FamilyState familyState;
+  const _SetupChecklist({required this.familyState});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dismissedAsync = ref.watch(setupChecklistDismissedProvider);
+    final isDismissed = dismissedAsync.asData?.value ?? true;
+    if (isDismissed) return const SizedBox.shrink();
+
+    final steps = [
+      (
+        label: 'Add your first child',
+        done: familyState.children.isNotEmpty,
+        route: '/manage-children',
+      ),
+      (
+        label: 'Set up savings buckets',
+        done: familyState.bucketTemplates.isNotEmpty,
+        route: '/bucket-templates',
+      ),
+      (
+        label: 'Create your first chore',
+        done: familyState.chores.isNotEmpty,
+        route: '/chores',
+      ),
+    ];
+
+    final allDone = steps.every((s) => s.done);
+    if (allDone) {
+      // Auto-dismiss once everything is complete
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(setupChecklistDismissedProvider.notifier).dismiss();
+      });
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final completedCount = steps.where((s) => s.done).length;
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.35), width: 1.5),
+      ),
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.25),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.rocket_launch_rounded, color: theme.colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Get Started  ($completedCount/${steps.length})',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  color: theme.colorScheme.onSurfaceVariant,
+                  onPressed: () => ref.read(setupChecklistDismissedProvider.notifier).dismiss(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: completedCount / steps.length,
+                minHeight: 5,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...steps.map((step) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: step.done ? null : () => context.push(step.route),
+                child: Row(
+                  children: [
+                    Icon(
+                      step.done ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+                      color: step.done ? Colors.green : theme.colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        step.label,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: step.done ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
+                          decoration: step.done ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                    ),
+                    if (!step.done)
+                      Icon(Icons.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
+            )),
           ],
         ),
       ),

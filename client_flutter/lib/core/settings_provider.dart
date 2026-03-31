@@ -26,6 +26,23 @@ class Settings extends _$Settings {
 }
 
 @riverpod
+class SetupChecklistDismissed extends _$SetupChecklistDismissed {
+  static const _key = 'setup_checklist_dismissed';
+
+  @override
+  FutureOr<bool> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_key) ?? false;
+  }
+
+  Future<void> dismiss() async {
+    state = const AsyncValue.data(true);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, true);
+  }
+}
+
+@riverpod
 class DefaultChoreAmount extends _$DefaultChoreAmount {
   static const _key = 'default_chore_amount';
 

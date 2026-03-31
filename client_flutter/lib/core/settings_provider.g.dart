@@ -53,6 +53,51 @@ abstract class _$Settings extends $AsyncNotifier<ThemeMode> {
   }
 }
 
+@ProviderFor(SetupChecklistDismissed)
+final setupChecklistDismissedProvider = SetupChecklistDismissedProvider._();
+
+final class SetupChecklistDismissedProvider
+    extends $AsyncNotifierProvider<SetupChecklistDismissed, bool> {
+  SetupChecklistDismissedProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'setupChecklistDismissedProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$setupChecklistDismissedHash();
+
+  @$internal
+  @override
+  SetupChecklistDismissed create() => SetupChecklistDismissed();
+}
+
+String _$setupChecklistDismissedHash() =>
+    r'bfa5b29ed04da6800a5db7aa0a979f1d23fad2bc';
+
+abstract class _$SetupChecklistDismissed extends $AsyncNotifier<bool> {
+  FutureOr<bool> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<bool>, bool>,
+              AsyncValue<bool>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(DefaultChoreAmount)
 final defaultChoreAmountProvider = DefaultChoreAmountProvider._();
 

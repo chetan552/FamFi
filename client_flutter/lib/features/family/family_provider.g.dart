@@ -41,7 +41,7 @@ final class FamilyNotifierProvider
   }
 }
 
-String _$familyNotifierHash() => r'e38db3dd18c9294087faa61efb9b75b41537e902';
+String _$familyNotifierHash() => r'ba2eb6c18965267752263c22b29520bc35e77467';
 
 abstract class _$FamilyNotifier extends $Notifier<FamilyState> {
   FamilyState build();
