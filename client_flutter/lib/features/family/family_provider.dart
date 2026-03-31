@@ -640,6 +640,16 @@ class FamilyNotifier extends _$FamilyNotifier {
     }
   }
 
+  Future<void> deleteMultipleChores(List<String> choreIds) async {
+    if (choreIds.isEmpty) return;
+    try {
+      await _supabase.from('chores').delete().inFilter('id', choreIds);
+      await fetchFamily();
+    } catch (e) {
+      throw Exception('Failed to delete chores: $e');
+    }
+  }
+
   Future<void> clearCompletedChores() async {
     if (state.family == null) return;
     try {
