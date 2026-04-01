@@ -25,8 +25,10 @@ class LandingScreen extends ConsumerWidget {
           children: [
             _NavBar(isMobile: isMobile),
             _HeroSection(isMobile: isMobile),
+            _HowItWorksSection(isMobile: isMobile),
             _FeaturesSection(isMobile: isMobile),
             _ResponsibilitySection(isMobile: isMobile),
+            _FaqSection(isMobile: isMobile),
             _PricingSection(isMobile: isMobile),
             const _Footer(),
           ],
@@ -116,7 +118,7 @@ class _HeroSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: _teal.withOpacity(0.1),
+            color: _teal.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -133,18 +135,18 @@ class _HeroSection extends StatelessWidget {
         ),
         const SizedBox(height: 28),
         Text(
-          'Your Family\'s Fun\nVirtual Bank! 🏦',
+          'Teach Your Kids\nMoney Skills\nThey\'ll Keep Forever',
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
           style: GoogleFonts.outfit(
-            fontSize: isMobile ? 38 : 58,
+            fontSize: isMobile ? 36 : 54,
             fontWeight: FontWeight.w900,
-            height: 1.15,
+            height: 1.12,
             color: _dark,
           ),
         ),
         const SizedBox(height: 20),
         Text(
-          'Kids earn pocket money by completing chores, save it in themed buckets, watch it grow with interest, and learn real money skills — all in one fun family app.',
+          'FamFi is a virtual family bank where kids earn money through chores, save in themed buckets, watch interest grow, and build real financial habits — no cash needed.',
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
           style: GoogleFonts.inter(
             fontSize: 17,
@@ -153,32 +155,50 @@ class _HeroSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 36),
-        ElevatedButton(
-          onPressed: () => context.push('/signup'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _teal,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            elevation: 0,
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          child: const Text('Open a Family Piggy Bank Account — It\'s Free!'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: isMobile ? WrapAlignment.center : WrapAlignment.start,
+          children: [
+            ElevatedButton(
+              onPressed: () => context.push('/signup'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              child: const Text('Start Free'),
+            ),
+            OutlinedButton(
+              onPressed: () => context.push('/login'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _dark,
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                side: BorderSide(color: Colors.blueGrey.shade300),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              child: const Text('I Have an Account'),
+            ),
+          ],
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 32),
         Row(
           mainAxisAlignment: isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             _avatarStack(),
             const SizedBox(width: 12),
-            // Text(
-            //   '10,000+ families banking together',
-            //   style: TextStyle(
-            //     color: Colors.blueGrey.shade400,
-            //     fontWeight: FontWeight.w500,
-            //     fontSize: 13,
-            //   ),
-            // ),
+            Text(
+              'Families are already banking together',
+              style: TextStyle(
+                color: Colors.blueGrey.shade400,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
       ],
@@ -217,21 +237,168 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
+// ─── How It Works ────────────────────────────────────────────────────────────
+class _HowItWorksSection extends StatelessWidget {
+  final bool isMobile;
+  const _HowItWorksSection({required this.isMobile});
+
+  static const _steps = [
+    (
+      number: '1',
+      emoji: '👨‍👩‍👧‍👦',
+      title: 'Create Your Family Bank',
+      description: 'Sign up in 30 seconds, name your family bank, and add your children.',
+    ),
+    (
+      number: '2',
+      emoji: '🧹',
+      title: 'Assign Chores & Rewards',
+      description: 'Set chores with dollar values. Kids mark them done, you approve and pay.',
+    ),
+    (
+      number: '3',
+      emoji: '🎉',
+      title: 'Watch Them Learn & Grow',
+      description: 'Kids see their savings grow with interest, learn budgeting through buckets, and build habits that last.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: _bgLight,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 24 : 80,
+        vertical: 80,
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: _amber.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'QUICK SETUP',
+              style: TextStyle(
+                color: _amber,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Up and Running in 3 Steps',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              fontSize: isMobile ? 30 : 42,
+              fontWeight: FontWeight.bold,
+              color: _dark,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'No bank accounts, no cash, no complicated setup.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
+          ),
+          const SizedBox(height: 56),
+          isMobile
+              ? Column(
+                  children: [
+                    for (var i = 0; i < _steps.length; i++) ...[
+                      _StepCard(step: _steps[i], isMobile: isMobile),
+                      if (i < _steps.length - 1) ...[
+                        Icon(Icons.arrow_downward_rounded, color: Colors.blueGrey.shade300, size: 28),
+                        const SizedBox(height: 8),
+                      ],
+                    ],
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var i = 0; i < _steps.length; i++) ...[
+                      Expanded(child: _StepCard(step: _steps[i], isMobile: isMobile)),
+                      if (i < _steps.length - 1)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 44),
+                          child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 28),
+                        ),
+                    ],
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepCard extends StatelessWidget {
+  final ({String number, String emoji, String title, String description}) step;
+  final bool isMobile;
+  const _StepCard({required this.step, required this.isMobile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      margin: EdgeInsets.symmetric(horizontal: isMobile ? 0 : 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _teal.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            alignment: Alignment.center,
+            child: Text(step.emoji, style: const TextStyle(fontSize: 28)),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Step ${step.number}',
+            style: TextStyle(color: _teal, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            step.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: _dark),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            step.description,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 14, height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Features ────────────────────────────────────────────────────────────────
 class _FeaturesSection extends StatelessWidget {
   final bool isMobile;
   const _FeaturesSection({required this.isMobile});
 
   static const _features = [
-    ('🧹', 'Smart Chores', 'Assign chores, set rewards, and approve completions. Sync with Google Tasks for zero extra work.'),
-    ('🪣', 'Goal Buckets', 'Automatically split every dollar earned into Saving, Spending, and Giving buckets you configure.'),
-    ('📈', 'Interest & Growth', 'Set family interest rates so kids see their balances grow and learn the magic of compounding.'),
-    ('🤖', 'AI Money Mentor', 'An always-on AI coach that answers questions and delivers personalized savings tips for each child.'),
-
-    ('🪙', 'Earn Pocket Money', 'Kids complete chores set by parents and earn coins straight into their virtual piggy bank — no cash needed.'),
-    ('🪣', 'Save in Fun Buckets', 'Split earnings into Saving, Spending, and Giving piggy banks automatically so kids see exactly where money lives.'),
-    ('📈', 'Watch Money Grow', 'Parents can set a family interest rate so kids see their savings balance grow over time, just like a real bank.'),
-    ('🤖', 'AI Coach', 'A friendly AI coach that helps kids understand their money, set goals, and learn smart saving habits along the way.'),
+    ('🧹', 'Smart Chores', 'Assign chores with dollar values, track completion, and approve payouts. Sync with Google Tasks for zero extra work.'),
+    ('🪣', 'Savings Buckets', 'Every dollar earned is automatically split into Saving, Spending, and Giving buckets you configure — teaching kids where money goes.'),
+    ('📈', 'Interest & Matching', 'Set a family interest rate so kids see compounding in action. Enable parent matching to double the bonus.'),
+    ('🤖', 'AI Money Mentor', 'An always-on AI coach that answers money questions, sets age-appropriate goals, and delivers personalized tips for each child.'),
   ];
 
   @override
@@ -245,7 +412,7 @@ class _FeaturesSection extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Works Just Like a Real Bank —\nBut Way More Fun',
+            'Everything Your Family\nBank Needs',
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: isMobile ? 30 : 42,
@@ -255,12 +422,9 @@ class _FeaturesSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'FamFi is a virtual family bank your kids can actually see, touch, and understand.',
+            'A virtual bank your kids can actually see, touch, and understand.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              color: Colors.blueGrey.shade500,
-            ),
+            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
           ),
           const SizedBox(height: 56),
           Wrap(
@@ -285,13 +449,13 @@ class _FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 270,
+      constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -301,7 +465,7 @@ class _FeatureCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: _teal.withOpacity(0.09),
+              color: _teal.withValues(alpha: 0.09),
               borderRadius: BorderRadius.circular(14),
             ),
             alignment: Alignment.center,
@@ -367,7 +531,7 @@ class _ResponsibilitySection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          "FamFi isn't just a tracker — it's a curriculum for real-world money values.",
+          "FamFi isn't just a tracker — it's a hands-on curriculum for real-world money values.",
           style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500, height: 1.6),
         ),
         const SizedBox(height: 40),
@@ -378,7 +542,7 @@ class _ResponsibilitySection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _amber.withOpacity(0.12),
+                  color: _amber.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(p.$1, color: _amber, size: 22),
@@ -407,12 +571,12 @@ class _ResponsibilitySection extends StatelessWidget {
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_amber.withOpacity(0.08), _amber.withOpacity(0.02)],
+          colors: [_amber.withValues(alpha: 0.08), _amber.withValues(alpha: 0.02)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: _amber.withOpacity(0.2)),
+        border: Border.all(color: _amber.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -455,6 +619,130 @@ class _ResponsibilitySection extends StatelessWidget {
   }
 }
 
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+class _FaqSection extends StatelessWidget {
+  final bool isMobile;
+  const _FaqSection({required this.isMobile});
+
+  static const _faqs = [
+    (
+      question: 'Is this real money?',
+      answer: 'No. FamFi is a virtual family bank for tracking allowances and teaching money skills. No real bank accounts or cards are involved — just the lessons.',
+    ),
+    (
+      question: 'What age is this for?',
+      answer: 'FamFi works great for kids ages 4-16. Younger kids love earning and watching buckets fill up; older kids appreciate interest and budgeting.',
+    ),
+    (
+      question: 'Can both parents use it?',
+      answer: 'Yes! Share your family invite code and both parents can manage chores, approve payouts, and track progress from their own devices.',
+    ),
+    (
+      question: 'What if I have multiple kids?',
+      answer: 'The free plan supports 1 child. Upgrade to Family Premium for unlimited child profiles, AI mentor access, and Google Tasks sync.',
+    ),
+    (
+      question: 'How does the interest feature work?',
+      answer: 'You set a monthly interest rate (e.g., 5%) on any savings bucket. When you run "Process Interest," FamFi calculates and credits interest on every child\'s balance — just like a real bank.',
+    ),
+    (
+      question: 'Can kids use it on their own device?',
+      answer: 'Yes! Kids can log in on a tablet or phone to view their balances, mark chores as done, and check their savings goals. Parents approve everything.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: _bgLight,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 24 : 80,
+        vertical: 80,
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Frequently Asked Questions',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              fontSize: isMobile ? 30 : 42,
+              fontWeight: FontWeight.bold,
+              color: _dark,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Everything you need to know before getting started.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
+          ),
+          const SizedBox(height: 48),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: Column(
+              children: [
+                for (final faq in _faqs)
+                  _FaqTile(question: faq.question, answer: faq.answer),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FaqTile extends StatefulWidget {
+  final String question, answer;
+  const _FaqTile({required this.question, required this.answer});
+
+  @override
+  State<_FaqTile> createState() => _FaqTileState();
+}
+
+class _FaqTileState extends State<_FaqTile> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _expanded ? _teal.withValues(alpha: 0.3) : Colors.blueGrey.shade100),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          onExpansionChanged: (val) => setState(() => _expanded = val),
+          title: Text(
+            widget.question,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              color: _expanded ? _teal : _dark,
+            ),
+          ),
+          trailing: AnimatedRotation(
+            turns: _expanded ? 0.5 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(Icons.expand_more, color: _expanded ? _teal : Colors.blueGrey.shade400),
+          ),
+          children: [
+            Text(
+              widget.answer,
+              style: TextStyle(color: Colors.blueGrey.shade500, fontSize: 14, height: 1.6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Pricing ──────────────────────────────────────────────────────────────────
 class _PricingSection extends StatelessWidget {
   final bool isMobile;
@@ -491,7 +779,7 @@ class _PricingSection extends StatelessWidget {
                 title: 'Family Basic',
                 price: 'Free',
                 subtitle: 'Perfect to get started.',
-                features: const ['1 Child Profile', 'Basic Chore Tracking', 'Savings Buckets', 'Activity History'],
+                features: const ['1 Child Profile', 'Chore Tracking & Payday', 'Savings Buckets', 'Activity History'],
                 featured: false,
                 onTap: () => context.push('/signup'),
               ),
@@ -503,7 +791,8 @@ class _PricingSection extends StatelessWidget {
                   'Unlimited Child Profiles',
                   'AI Money Mentor',
                   'Google Tasks Sync',
-                  'Advanced Interest Settings',
+                  'Interest & Parent Matching',
+                  'Kiosk Dashboard for Tablets',
                   'Priority Support',
                 ],
                 featured: true,
@@ -536,7 +825,7 @@ class _PricingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = featured ? _teal : Colors.white;
     final fg = featured ? Colors.white : _dark;
-    final subtle = featured ? Colors.white.withOpacity(0.7) : Colors.blueGrey.shade400;
+    final subtle = featured ? Colors.white.withValues(alpha: 0.7) : Colors.blueGrey.shade400;
     final iconColor = featured ? Colors.white : _teal;
 
     return Container(
@@ -547,8 +836,8 @@ class _PricingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         border: featured ? null : Border.all(color: Colors.blueGrey.shade100),
         boxShadow: featured
-            ? [BoxShadow(color: _teal.withOpacity(0.25), blurRadius: 32, offset: const Offset(0, 12))]
-            : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 6))],
+            ? [BoxShadow(color: _teal.withValues(alpha: 0.25), blurRadius: 32, offset: const Offset(0, 12))]
+            : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -558,7 +847,7 @@ class _PricingCard extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text('MOST POPULAR', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
@@ -633,12 +922,31 @@ class _Footer extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Making financial literacy approachable for every family.',
+            textAlign: TextAlign.center,
             style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 14),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 24,
+            alignment: WrapAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => context.push('/login'),
+                child: Text('Login', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13)),
+              ),
+              TextButton(
+                onPressed: () => context.push('/signup'),
+                child: Text('Sign Up', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           const Divider(color: Colors.white12),
           const SizedBox(height: 24),
-          Text('© 2026 FamFi Inc. All rights reserved.', style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 12)),
+          Text(
+            '© 2026 FamFi Inc. All rights reserved.',
+            style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 12),
+          ),
         ],
       ),
     );
