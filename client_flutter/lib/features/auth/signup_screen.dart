@@ -218,7 +218,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           children: [
                             Text("Already have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                             InkWell(
-                              onTap: () => context.pop(),
+                              onTap: () => context.go('/login'),
                               child: Text('Sign In', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
                             ),
                           ],

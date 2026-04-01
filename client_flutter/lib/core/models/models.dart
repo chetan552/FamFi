@@ -40,13 +40,13 @@ class Family {
 @immutable
 class UserProfile {
   final String id;
-  final String familyId;
+  final String? familyId;
   final String? authId;
   final String role;
   final String name;
   final String avatarEmoji;
 
-  const UserProfile({required this.id, required this.familyId, this.authId, required this.role, required this.name, required this.avatarEmoji});
+  const UserProfile({required this.id, this.familyId, this.authId, required this.role, required this.name, required this.avatarEmoji});
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
     id: json['id'],

@@ -11,7 +11,13 @@ import 'core/settings_provider.dart';
 void main() async {
   configureApp(); // Enable Path Strategy for Web
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Kick off font downloads before the first frame so the TextPainter
+  // layout and paint sizes are consistent (prevents assert(debugSize == size)).
+  GoogleFonts.outfit();
+  GoogleFonts.inter();
+  await GoogleFonts.pendingFonts();
+
   await Supabase.initialize(
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,

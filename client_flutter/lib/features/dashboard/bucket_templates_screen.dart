@@ -169,7 +169,7 @@ class _BucketTemplatesScreenState extends ConsumerState<BucketTemplatesScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => context.go('/dashboard'),
+                  onPressed: () => context.go('/'),
                   icon: const Icon(Icons.check),
                   label: const Text('Finish Setup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(

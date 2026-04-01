@@ -96,7 +96,10 @@ class FamilyNotifier extends _$FamilyNotifier {
     try {
       final profileRes = await _supabase.from('users').select().eq('auth_id', authUser.id).maybeSingle();
       if (profileRes == null || profileRes['family_id'] == null) {
-        state = state.copyWith(loading: false);
+        state = state.copyWith(
+          loading: false,
+          currentUserProfile: profileRes != null ? UserProfile.fromJson(profileRes) : null,
+        );
         return;
       }
 
@@ -236,13 +239,11 @@ class FamilyNotifier extends _$FamilyNotifier {
     String? recurrencePeriod,
   ) async {
     state = state.copyWith(loading: true);
-    final user = ref.read(authProvider);
-    if (user == null || state.family == null) return;
+    if (state.family == null) return;
     try {
       await _supabase.from('chores').insert({
         'family_id': state.family!.id,
         'assigned_to_child_id': childId,
-        'created_by': user.id,
         'title': title,
         'value': value,
         'due_date': dueDate,
@@ -441,7 +442,7 @@ class FamilyNotifier extends _$FamilyNotifier {
         'template_id': templateId,
         'rate_percent': ratePercent,
         'match_enabled': matchEnabled,
-      }, onConflict: 'template_id'); 
+      }, onConflict: 'family_id,template_id');
       await fetchInterestSettings();
     } catch (e) {
       throw Exception('Failed to save interest setting: $e');
