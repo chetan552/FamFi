@@ -3,12 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ─── Color Tokens ────────────────────────────────────────────────────────────
+// ─── Brand Colors (never change with theme) ──────────────────────────────────
 const _teal = Color(0xFF2B9EB3);
 const _amber = Color(0xFFF5A623);
-const _dark = Color(0xFF1A2E35);
-const _bgLight = Color(0xFFF8FAFB);
-const _bgMid = Color(0xFFEFF4F6);
 
 class LandingScreen extends ConsumerWidget {
   const LandingScreen({super.key});
@@ -18,7 +15,6 @@ class LandingScreen extends ConsumerWidget {
     final isMobile = MediaQuery.of(context).size.width < 800;
 
     return Scaffold(
-      backgroundColor: _bgLight,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -45,8 +41,9 @@ class _NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _bgLight,
+      color: cs.surface,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
       child: Row(
         children: [
@@ -63,7 +60,7 @@ class _NavBar extends StatelessWidget {
           const Spacer(),
           TextButton(
             onPressed: () => context.push('/login'),
-            style: TextButton.styleFrom(foregroundColor: _dark),
+            style: TextButton.styleFrom(foregroundColor: cs.onSurface),
             child: const Text('Login', style: TextStyle(fontWeight: FontWeight.w600)),
           ),
           const SizedBox(width: 12),
@@ -91,18 +88,19 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _bgLight,
+      color: cs.surface,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
         vertical: isMobile ? 48 : 72,
       ),
       child: isMobile
-          ? Column(children: [_heroText(context), const SizedBox(height: 48), _heroImage()])
+          ? Column(children: [_heroText(context, cs), const SizedBox(height: 48), _heroImage()])
           : Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(flex: 5, child: _heroText(context)),
+                Expanded(flex: 5, child: _heroText(context, cs)),
                 const SizedBox(width: 48),
                 Expanded(flex: 4, child: _heroImage()),
               ],
@@ -110,11 +108,10 @@ class _HeroSection extends StatelessWidget {
     );
   }
 
-  Widget _heroText(BuildContext context) {
+  Widget _heroText(BuildContext context, ColorScheme cs) {
     return Column(
       crossAxisAlignment: isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
-        // Badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
@@ -141,7 +138,7 @@ class _HeroSection extends StatelessWidget {
             fontSize: isMobile ? 36 : 54,
             fontWeight: FontWeight.w900,
             height: 1.12,
-            color: _dark,
+            color: cs.onSurface,
           ),
         ),
         const SizedBox(height: 20),
@@ -150,7 +147,7 @@ class _HeroSection extends StatelessWidget {
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
           style: GoogleFonts.inter(
             fontSize: 17,
-            color: Colors.blueGrey.shade600,
+            color: cs.onSurfaceVariant,
             height: 1.65,
           ),
         ),
@@ -175,10 +172,10 @@ class _HeroSection extends StatelessWidget {
             OutlinedButton(
               onPressed: () => context.push('/login'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: _dark,
+                foregroundColor: cs.onSurface,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                side: BorderSide(color: Colors.blueGrey.shade300),
+                side: BorderSide(color: cs.outline),
                 textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               child: const Text('I Have an Account'),
@@ -189,12 +186,12 @@ class _HeroSection extends StatelessWidget {
         Row(
           mainAxisAlignment: isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
-            _avatarStack(),
+            _avatarStack(cs),
             const SizedBox(width: 12),
             Text(
               'Families are already banking together',
               style: TextStyle(
-                color: Colors.blueGrey.shade400,
+                color: cs.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),
@@ -209,7 +206,7 @@ class _HeroSection extends StatelessWidget {
     return Image.asset('assets/images/famfi_hero.png', fit: BoxFit.contain);
   }
 
-  Widget _avatarStack() {
+  Widget _avatarStack(ColorScheme cs) {
     const emojis = ['🧑', '👧', '👶', '👨'];
     return SizedBox(
       width: 96,
@@ -222,11 +219,11 @@ class _HeroSection extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: cs.surface, width: 2),
                 ),
                 child: CircleAvatar(
                   radius: 13,
-                  backgroundColor: Colors.blueGrey.shade100,
+                  backgroundColor: cs.surfaceContainerHighest,
                   child: Text(emojis[i], style: const TextStyle(fontSize: 13)),
                 ),
               ),
@@ -265,8 +262,9 @@ class _HowItWorksSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _bgLight,
+      color: cs.surface,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
         vertical: 80,
@@ -296,14 +294,14 @@ class _HowItWorksSection extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: isMobile ? 30 : 42,
               fontWeight: FontWeight.bold,
-              color: _dark,
+              color: cs.onSurface,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             'No bank accounts, no cash, no complicated setup.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
+            style: GoogleFonts.inter(fontSize: 16, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 56),
           isMobile
@@ -312,7 +310,7 @@ class _HowItWorksSection extends StatelessWidget {
                     for (var i = 0; i < _steps.length; i++) ...[
                       _StepCard(step: _steps[i], isMobile: isMobile),
                       if (i < _steps.length - 1) ...[
-                        Icon(Icons.arrow_downward_rounded, color: Colors.blueGrey.shade300, size: 28),
+                        Icon(Icons.arrow_downward_rounded, color: cs.outlineVariant, size: 28),
                         const SizedBox(height: 8),
                       ],
                     ],
@@ -326,7 +324,7 @@ class _HowItWorksSection extends StatelessWidget {
                       if (i < _steps.length - 1)
                         Padding(
                           padding: const EdgeInsets.only(top: 44),
-                          child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 28),
+                          child: Icon(Icons.arrow_forward_rounded, color: cs.outlineVariant, size: 28),
                         ),
                     ],
                   ],
@@ -344,11 +342,12 @@ class _StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(28),
       margin: EdgeInsets.symmetric(horizontal: isMobile ? 0 : 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6)),
@@ -375,13 +374,13 @@ class _StepCard extends StatelessWidget {
           Text(
             step.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: _dark),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: cs.onSurface),
           ),
           const SizedBox(height: 8),
           Text(
             step.description,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 14, height: 1.5),
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14, height: 1.5),
           ),
         ],
       ),
@@ -403,8 +402,9 @@ class _FeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _bgMid,
+      color: cs.surfaceContainerLow,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
         vertical: 80,
@@ -417,14 +417,14 @@ class _FeaturesSection extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: isMobile ? 30 : 42,
               fontWeight: FontWeight.bold,
-              color: _dark,
+              color: cs.onSurface,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             'A virtual bank your kids can actually see, touch, and understand.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
+            style: GoogleFonts.inter(fontSize: 16, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 56),
           Wrap(
@@ -448,11 +448,12 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6)),
@@ -472,9 +473,9 @@ class _FeatureCard extends StatelessWidget {
             child: Text(emoji, style: const TextStyle(fontSize: 22)),
           ),
           const SizedBox(height: 20),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _dark)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: cs.onSurface)),
           const SizedBox(height: 8),
-          Text(description, style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 14, height: 1.55)),
+          Text(description, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14, height: 1.55)),
         ],
       ),
     );
@@ -494,11 +495,12 @@ class _ResponsibilitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final left = _leftContent();
-    final right = _rightCard(context);
+    final cs = Theme.of(context).colorScheme;
+    final left = _leftContent(cs);
+    final right = _rightCard(context, cs);
 
     return Container(
-      color: _bgLight,
+      color: cs.surface,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
         vertical: 80,
@@ -516,7 +518,7 @@ class _ResponsibilitySection extends StatelessWidget {
     );
   }
 
-  Widget _leftContent() {
+  Widget _leftContent(ColorScheme cs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -525,14 +527,14 @@ class _ResponsibilitySection extends StatelessWidget {
           style: GoogleFonts.outfit(
             fontSize: 40,
             fontWeight: FontWeight.bold,
-            color: _dark,
+            color: cs.onSurface,
             height: 1.2,
           ),
         ),
         const SizedBox(height: 16),
         Text(
           "FamFi isn't just a tracker — it's a hands-on curriculum for real-world money values.",
-          style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500, height: 1.6),
+          style: GoogleFonts.inter(fontSize: 16, color: cs.onSurfaceVariant, height: 1.6),
         ),
         const SizedBox(height: 40),
         for (final p in _pillars) ...[
@@ -552,9 +554,9 @@ class _ResponsibilitySection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p.$2, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _dark)),
+                    Text(p.$2, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: cs.onSurface)),
                     const SizedBox(height: 4),
-                    Text(p.$3, style: TextStyle(color: Colors.blueGrey.shade500, fontSize: 14, height: 1.5)),
+                    Text(p.$3, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14, height: 1.5)),
                   ],
                 ),
               ),
@@ -566,17 +568,17 @@ class _ResponsibilitySection extends StatelessWidget {
     );
   }
 
-  Widget _rightCard(BuildContext context) {
+  Widget _rightCard(BuildContext context, ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_amber.withValues(alpha: 0.08), _amber.withValues(alpha: 0.02)],
+          colors: [_amber.withValues(alpha: 0.12), _amber.withValues(alpha: 0.04)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: _amber.withValues(alpha: 0.2)),
+        border: Border.all(color: _amber.withValues(alpha: 0.25)),
       ),
       child: Column(
         children: [
@@ -597,7 +599,7 @@ class _ResponsibilitySection extends StatelessWidget {
             style: GoogleFonts.inter(
               fontStyle: FontStyle.italic,
               fontSize: 17,
-              color: const Color(0xFF4A3B10),
+              color: cs.onSurface,
               height: 1.55,
             ),
           ),
@@ -653,8 +655,9 @@ class _FaqSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _bgLight,
+      color: cs.surface,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
         vertical: 80,
@@ -667,14 +670,14 @@ class _FaqSection extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: isMobile ? 30 : 42,
               fontWeight: FontWeight.bold,
-              color: _dark,
+              color: cs.onSurface,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             'Everything you need to know before getting started.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
+            style: GoogleFonts.inter(fontSize: 16, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 48),
           Container(
@@ -705,12 +708,13 @@ class _FaqTileState extends State<_FaqTile> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _expanded ? _teal.withValues(alpha: 0.3) : Colors.blueGrey.shade100),
+        border: Border.all(color: _expanded ? _teal.withValues(alpha: 0.3) : cs.outlineVariant),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -723,18 +727,18 @@ class _FaqTileState extends State<_FaqTile> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 15,
-              color: _expanded ? _teal : _dark,
+              color: _expanded ? _teal : cs.onSurface,
             ),
           ),
           trailing: AnimatedRotation(
             turns: _expanded ? 0.5 : 0,
             duration: const Duration(milliseconds: 200),
-            child: Icon(Icons.expand_more, color: _expanded ? _teal : Colors.blueGrey.shade400),
+            child: Icon(Icons.expand_more, color: _expanded ? _teal : cs.onSurfaceVariant),
           ),
           children: [
             Text(
               widget.answer,
-              style: TextStyle(color: Colors.blueGrey.shade500, fontSize: 14, height: 1.6),
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14, height: 1.6),
             ),
           ],
         ),
@@ -750,8 +754,9 @@ class _PricingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _bgMid,
+      color: cs.surfaceContainerLow,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 80,
         vertical: 80,
@@ -761,13 +766,13 @@ class _PricingSection extends StatelessWidget {
           Text(
             'Simple, Honest Pricing',
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(fontSize: isMobile ? 30 : 42, fontWeight: FontWeight.bold, color: _dark),
+            style: GoogleFonts.outfit(fontSize: isMobile ? 30 : 42, fontWeight: FontWeight.bold, color: cs.onSurface),
           ),
           const SizedBox(height: 10),
           Text(
             'Start free. Upgrade when your family is ready.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 16, color: Colors.blueGrey.shade500),
+            style: GoogleFonts.inter(fontSize: 16, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 56),
           Wrap(
@@ -823,9 +828,10 @@ class _PricingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = featured ? _teal : Colors.white;
-    final fg = featured ? Colors.white : _dark;
-    final subtle = featured ? Colors.white.withValues(alpha: 0.7) : Colors.blueGrey.shade400;
+    final cs = Theme.of(context).colorScheme;
+    final bg = featured ? _teal : cs.surfaceContainerLowest;
+    final fg = featured ? Colors.white : cs.onSurface;
+    final subtle = featured ? Colors.white.withValues(alpha: 0.7) : cs.onSurfaceVariant;
     final iconColor = featured ? Colors.white : _teal;
 
     return Container(
@@ -834,7 +840,7 @@ class _PricingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(28),
-        border: featured ? null : Border.all(color: Colors.blueGrey.shade100),
+        border: featured ? null : Border.all(color: cs.outlineVariant),
         boxShadow: featured
             ? [BoxShadow(color: _teal.withValues(alpha: 0.25), blurRadius: 32, offset: const Offset(0, 12))]
             : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6))],
@@ -867,7 +873,7 @@ class _PricingCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(subtitle, style: TextStyle(color: subtle, fontSize: 14)),
-          Divider(height: 40, color: featured ? Colors.white24 : Colors.blueGrey.shade100),
+          Divider(height: 40, color: featured ? Colors.white24 : cs.outlineVariant),
           for (final f in features)
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
@@ -900,14 +906,14 @@ class _PricingCard extends StatelessWidget {
   }
 }
 
-// ─── Footer ───────────────────────────────────────────────────────────────────
+// ─── Footer (always dark — intentional brand choice) ─────────────────────────
 class _Footer extends StatelessWidget {
   const _Footer();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _dark,
+      color: const Color(0xFF1A2E35),
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 32),
       child: Column(
         children: [
