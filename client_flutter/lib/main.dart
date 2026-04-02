@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,6 +39,16 @@ const _amber      = Color(0xFFF5A623);
 const _amberLight = Color(0xFFFFCA61); // rgb(255, 202, 97) — kid button, secondary container
 const _coral      = Color(0xFFE85D75);
 const _amberDark  = Color(0xFFC77E00); //#c77e00
+
+class _TouchScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.trackpad,
+  };
+}
 
 class FamFiApp extends ConsumerWidget {
   const FamFiApp({super.key});
@@ -254,6 +265,7 @@ class FamFiApp extends ConsumerWidget {
           }),
         ),
       ),
+      scrollBehavior: _TouchScrollBehavior(),
       routerConfig: router,
     );
   }

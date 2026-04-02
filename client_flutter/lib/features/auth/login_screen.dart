@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_provider.dart';
@@ -12,18 +13,11 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  String _email = '';
+  String _password = '';
   String? _error;
   bool _showPassword = false;
   bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
 
   Future<void> _handleLogin() async {
     setState(() {
@@ -31,8 +25,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _isLoading = true;
     });
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
+    final email = _email.trim();
+    final password = _password;
 
     if (email.isEmpty) {
       setState(() { _error = 'Please enter your email.'; _isLoading = false; });
@@ -45,6 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       await ref.read(authProvider.notifier).signIn(email, password);
+      TextInput.finishAutofillContext();
     } catch (e) {
       if (mounted) {
         setState(() => _error = _friendlyAuthError(e.toString()));
@@ -145,10 +140,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               TextFormField(
-                                controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
-                                autofillHints: const [AutofillHints.email],
+                                autofillHints: const [AutofillHints.username, AutofillHints.email],
+                                onChanged: (v) => _email = v,
                                 decoration: const InputDecoration(
                                   labelText: 'Email',
                                   prefixIcon: Icon(Icons.email_outlined),
@@ -156,10 +151,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               const SizedBox(height: 16),
                               TextFormField(
-                                controller: _passwordController,
                                 obscureText: !_showPassword,
                                 textInputAction: TextInputAction.done,
                                 autofillHints: const [AutofillHints.password],
+                                onChanged: (v) => _password = v,
                                 onFieldSubmitted: (_) => _handleLogin(),
                                 decoration: InputDecoration(
                                   labelText: 'Password',
@@ -185,7 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () async {
-                              final email = _emailController.text.trim();
+                              final email = _email.trim();
                               if (email.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Enter your email above first, then tap Forgot Password.')),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,30 +14,21 @@ class SignupScreen extends ConsumerStatefulWidget {
 }
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  String _name = '';
+  String _email = '';
+  String _password = '';
+  String _confirmPassword = '';
   String? _error;
   bool _showPassword = false;
   bool _isLoading = false;
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
   Future<void> _handleSignup() async {
     setState(() => _error = null);
 
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
+    final name = _name.trim();
+    final email = _email.trim();
+    final password = _password;
+    final confirmPassword = _confirmPassword;
 
     if (name.isEmpty) { setState(() => _error = 'Please enter your name.'); return; }
     if (email.isEmpty) { setState(() => _error = 'Please enter your email.'); return; }
@@ -47,6 +39,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).signUp(email, password, name);
+      TextInput.finishAutofillContext(shouldSave: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Signup successful! Welcome to FamFi.')),
@@ -154,23 +147,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               TextFormField(
-                                controller: _nameController,
                                 decoration: const InputDecoration(labelText: 'Your Name', prefixIcon: Icon(Icons.person_outline)),
                                 textCapitalization: TextCapitalization.words,
                                 autofillHints: const [AutofillHints.name],
                                 textInputAction: TextInputAction.next,
+                                onChanged: (v) => _name = v,
                               ),
                               const SizedBox(height: 16),
                               TextFormField(
-                                controller: _emailController,
                                 decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
                                 keyboardType: TextInputType.emailAddress,
-                                autofillHints: const [AutofillHints.email],
+                                autofillHints: const [AutofillHints.username, AutofillHints.email],
                                 textInputAction: TextInputAction.next,
+                                onChanged: (v) => _email = v,
                               ),
                               const SizedBox(height: 16),
                               TextFormField(
-                                controller: _passwordController,
                                 obscureText: !_showPassword,
                                 decoration: InputDecoration(
                                   labelText: 'Password',
@@ -182,14 +174,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 ),
                                 autofillHints: const [AutofillHints.newPassword],
                                 textInputAction: TextInputAction.next,
+                                onChanged: (v) => _password = v,
                               ),
                               const SizedBox(height: 16),
                               TextFormField(
-                                controller: _confirmPasswordController,
                                 obscureText: !_showPassword,
                                 decoration: const InputDecoration(labelText: 'Confirm Password', prefixIcon: Icon(Icons.lock_clock_outlined)),
-                                autofillHints: const [AutofillHints.password],
+                                autofillHints: const [AutofillHints.newPassword],
                                 textInputAction: TextInputAction.done,
+                                onChanged: (v) => _confirmPassword = v,
                                 onFieldSubmitted: (_) => _handleSignup(),
                               ),
                             ],
