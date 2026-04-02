@@ -14,13 +14,12 @@ class PaydayScreen extends ConsumerStatefulWidget {
 class _PaydayScreenState extends ConsumerState<PaydayScreen> {
   // Flat map for childId_templateId -> value
   final Map<String, String> distributions = {};
-  // Track last total per child
-  final Map<String, double> _lastTotals = {};
   // Flat map for childId_templateId -> TextEditingController
   final Map<String, TextEditingController> _controllers = {};
-  
+
   Map<String, String> errors = {};
   Set<String> paidChildren = {};
+  String? _processingChildId;
   String? _lastStateHash;
 
   @override
@@ -31,54 +30,32 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
     super.dispose();
   }
 
-  void _recalculateDistributions() {
-    final familyState = ref.read(familyProvider);
-    final templates = familyState.bucketTemplates;
+  void _recalculateDistributions(List<({UserProfile child, List<Chore> chores, double total})> childrenWithPay, List<BucketTemplate> templates) {
     if (templates.isEmpty) return;
 
-    final childrenWithPay = familyState.children.map((child) {
-      final childChores = familyState.chores.where((c) => c.assignedToChildId == child.id && c.status == 'approved').toList();
-      final total = childChores.fold<double>(0, (sum, c) => sum + c.value);
-      return (childId: child.id, total: total);
-    }).where((item) => item.total > 0).toList();
-
-    bool changed = false;
     for (final item in childrenWithPay) {
-      final childId = item.childId;
+      final childId = item.child.id;
       final total = item.total;
-      
-      // If any bucket for this child is missing, recalculate all for them
-      final firstBucketKey = "${childId}_${templates.first.id}";
-      if (_lastTotals[childId] != total || !distributions.containsKey(firstBucketKey)) {
-        _lastTotals[childId] = total;
-        
-        final splitAmount = (total / templates.length).toStringAsFixed(2);
-        final double sumExceptLast = double.parse(splitAmount) * (templates.length - 1);
-        
-        for (int i = 0; i < templates.length; i++) {
-          final tId = templates[i].id;
-          final key = "${childId}_$tId";
-          final String amountStr = (i == templates.length - 1) 
-              ? (total - sumExceptLast).toStringAsFixed(2) 
-              : splitAmount;
-          
-          distributions[key] = amountStr;
-          
-          final existingController = _controllers[key];
-          if (existingController == null) {
-            _controllers[key] = TextEditingController(text: amountStr);
-          } else {
-            if (existingController.text != amountStr) {
-               existingController.text = amountStr;
-            }
-          }
-        }
-        changed = true;
-      }
-    }
 
-    if (changed && mounted) {
-      setState(() {});
+      final splitAmount = (total / templates.length).toStringAsFixed(2);
+      final double sumExceptLast = double.parse(splitAmount) * (templates.length - 1);
+
+      for (int i = 0; i < templates.length; i++) {
+        final tId = templates[i].id;
+        final key = '${childId}_$tId';
+        final String amountStr = (i == templates.length - 1)
+            ? (total - sumExceptLast).toStringAsFixed(2)
+            : splitAmount;
+
+        distributions[key] = amountStr;
+
+        final existingController = _controllers[key];
+        if (existingController == null) {
+          _controllers[key] = TextEditingController(text: amountStr);
+        } else if (existingController.text != amountStr) {
+          existingController.text = amountStr;
+        }
+      }
     }
   }
 
@@ -95,7 +72,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
     double calculatedTotal = 0;
     final numberDist = <String, double>{};
     for (final tId in templateIds) {
-      final key = "${childId}_$tId";
+      final key = '${childId}_$tId';
       final valStr = distributions[key] ?? '0';
       final val = double.tryParse(valStr) ?? 0;
       calculatedTotal += val;
@@ -109,42 +86,50 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
       return;
     }
 
+    setState(() => _processingChildId = childId);
     try {
       await ref.read(familyProvider.notifier).processPayday(childId, numberDist, choreIds);
-      setState(() {
-        paidChildren.add(childId);
-      });
       if (mounted) {
+        setState(() {
+          paidChildren.add(childId);
+          _processingChildId = null;
+        });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Paid \$${total.toStringAsFixed(2)} to $childName! 🎉')));
       }
     } catch (e) {
-      setState(() {
-        errors[childId] = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          errors[childId] = e.toString();
+          _processingChildId = null;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(familyProvider.select((s) => s.loading));
     final children = ref.watch(familyProvider.select((s) => s.children));
     final chores = ref.watch(familyProvider.select((s) => s.chores));
     final bucketTemplates = ref.watch(familyProvider.select((s) => s.bucketTemplates));
     final theme = Theme.of(context);
 
-    // Re-verify list on rebuild
     final childrenWithPay = children.map((child) {
       final childChores = chores.where((c) => c.assignedToChildId == child.id && c.status == 'approved').toList();
       final total = childChores.fold<double>(0, (sum, c) => sum + c.value);
       return (child: child, chores: childChores, total: total);
     }).where((item) => item.total > 0).toList();
 
-    // Recalculate distributions if family state changed
-    // Use a simple hash to avoid redundant recalculations
-    final stateHash = '${chores.length}_${bucketTemplates.length}_${children.length}';
+    // Hash includes per-child totals so any chore approval/unapproval triggers recalc
+    final stateHash = childrenWithPay.map((item) => '${item.child.id}:${item.total.toStringAsFixed(2)}').join('|')
+        + '_bt${bucketTemplates.length}';
     if (_lastStateHash != stateHash) {
       _lastStateHash = stateHash;
-      _recalculateDistributions();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _recalculateDistributions(childrenWithPay, bucketTemplates);
+          setState(() {});
+        }
+      });
     }
 
     if (childrenWithPay.isEmpty) {
@@ -263,14 +248,20 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: SizedBox(
                             width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                              ),
-                              onPressed: isLoading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, bucketTemplates.map((t) => t.id).toList()),
-                              child: isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            ),
+                            child: Builder(builder: (context) {
+                              final isProcessingThis = _processingChildId == child.id;
+                              final isAnyProcessing = _processingChildId != null;
+                              return ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: isAnyProcessing ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, bucketTemplates.map((t) => t.id).toList()),
+                                child: isProcessingThis
+                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              );
+                            }),
                           ),
                         ),
                       ),
