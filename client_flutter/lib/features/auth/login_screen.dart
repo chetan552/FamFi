@@ -238,7 +238,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         ElevatedButton.icon(
                           onPressed: () => context.go('/child-login'),
-                          icon: Icon(Icons.child_care_outlined, color: theme.colorScheme.onTertiaryContainer),//const Text('👦', style: TextStyle(fontSize: 18)),
+                          icon: Icon(Icons.child_care, color: theme.colorScheme.onTertiaryContainer),
                           label: const Text("I'm a Kid", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.colorScheme.tertiaryContainer,
