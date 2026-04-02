@@ -52,11 +52,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (familyState.currentUserProfile?.role == 'child') {
+    // Profile not loaded yet — wait rather than defaulting to parent view.
+    // This handles the child login timing gap where link_child_account hasn't
+    // completed yet when fetchFamily() first runs.
+    if (familyState.currentUserProfile == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (familyState.currentUserProfile!.role == 'child') {
       return const ChildDashboard();
     }
-    
-    // Default to parent view if role is 'parent' or unknown (like brand new user)
+
     return const ParentDashboard();
   }
 }

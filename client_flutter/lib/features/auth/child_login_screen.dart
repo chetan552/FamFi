@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../family/family_provider.dart';
 
 /// A simple data class for children returned by the invite-code RPC.
 class _ChildEntry {
@@ -77,17 +78,21 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
       final supabase = Supabase.instance.client;
       final code = _inviteController.text.trim().toUpperCase();
 
-      // Step 1: Sign in anonymously so we get an auth.uid()
+      // Step 1: Sign in anonymously so we get an auth.uid().
+      // Note: this triggers the auth state change which navigates to the
+      // dashboard immediately. The dashboard will show a loading spinner
+      // while we complete linking below.
       await supabase.auth.signInAnonymously();
 
-      // Step 2: Link this anonymous session to the chosen child profile
+      // Step 2: Link this anonymous session to the chosen child profile.
       await supabase.rpc('link_child_account', params: {
         'p_invite_code': code,
         'p_child_id': child.id,
       });
 
-      // The authProvider listener will pick up the new session and
-      // the router redirect will navigate to the dashboard.
+      // Step 3: Re-fetch family data now that the child profile is linked.
+      // The dashboard is currently showing a loading spinner waiting for this.
+      await ref.read(familyProvider.notifier).fetchFamily();
     } catch (e) {
       if (mounted) {
         setState(() {
