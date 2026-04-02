@@ -177,7 +177,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Run Payday 💸', style: TextStyle(fontWeight: FontWeight.bold))),
       body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         itemCount: childrenWithPay.length,
         itemBuilder: (context, index) {
           final data = childrenWithPay[index];
@@ -192,7 +192,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
             elevation: 2,
             margin: const EdgeInsets.only(bottom: 24),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            color: isPaid ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.5) : theme.colorScheme.surface,
+            color: isPaid ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5) : theme.colorScheme.surface,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -213,7 +213,7 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                         child: Text('\$${total.toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16)),
                       ),
                     ],
@@ -258,13 +258,21 @@ class _PaydayScreenState extends ConsumerState<PaydayScreen> {
                   if (!isPaid)
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                              ),
+                              onPressed: isLoading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, bucketTemplates.map((t) => t.id).toList()),
+                              child: isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
                         ),
-                        onPressed: isLoading ? null : () => _handleProcessPayday(child.id, total, childChores.map((c) => c.id).toList(), child.name, bucketTemplates.map((t) => t.id).toList()),
-                        child: isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Pay \$${total.toStringAsFixed(2)} to ${child.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],

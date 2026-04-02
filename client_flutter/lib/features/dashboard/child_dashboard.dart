@@ -79,7 +79,7 @@ class ChildDashboard extends ConsumerWidget {
                   ? '${familyState.family!.name} Bank'
                   : 'The ${familyState.family?.name ?? 'Our'} Family Bank',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -103,7 +103,7 @@ class ChildDashboard extends ConsumerWidget {
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF2B9EB3).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8)),
+                  BoxShadow(color: const Color(0xFF2B9EB3).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8)),
                 ],
               ),
               child: Padding(
@@ -117,7 +117,7 @@ class ChildDashboard extends ConsumerWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -143,11 +143,11 @@ class ChildDashboard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
                     colors: [
-                      theme.colorScheme.primary.withOpacity(0.08),
-                      theme.colorScheme.primary.withOpacity(0.03),
+                      theme.colorScheme.primary.withValues(alpha: 0.08),
+                      theme.colorScheme.primary.withValues(alpha: 0.03),
                     ],
                   ),
-                  border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -157,7 +157,7 @@ class ChildDashboard extends ConsumerWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.15),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,

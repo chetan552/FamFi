@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'auth_provider.dart';
+import 'social_login_buttons.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -39,7 +40,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     if (name.isEmpty) { setState(() => _error = 'Please enter your name.'); return; }
     if (email.isEmpty) { setState(() => _error = 'Please enter your email.'); return; }
-    if (!email.contains('@')) { setState(() => _error = 'Please enter a valid email.'); return; }
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) { setState(() => _error = 'Please enter a valid email.'); return; }
     if (password.length < 6) { setState(() => _error = 'Password must be at least 6 characters.'); return; }
     if (password != confirmPassword) { setState(() => _error = 'Passwords do not match.'); return; }
 
@@ -52,10 +53,34 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         );
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      if (mounted) setState(() => _error = _friendlySignupError(e.toString()));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String _friendlySignupError(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('user already registered') || lower.contains('already been registered')) {
+      return 'An account with this email already exists. Try signing in instead.';
+    }
+    if (lower.contains('weak password') || lower.contains('password should be')) {
+      return 'Password is too weak. Please choose a stronger password.';
+    }
+    if (lower.contains('invalid email')) {
+      return 'Please enter a valid email address.';
+    }
+    if (lower.contains('too many requests') || lower.contains('rate limit')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (lower.contains('network') || lower.contains('socket') || lower.contains('connection')) {
+      return 'Network error. Please check your connection and try again.';
+    }
+    final cleaned = raw.replaceAll('Exception: ', '').trim();
+    if (cleaned.startsWith('(') || cleaned.length > 120) {
+      return 'Sign up failed. Please try again.';
+    }
+    return cleaned;
   }
 
   Future<void> _launchUrl(String url) async {
@@ -76,7 +101,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              theme.colorScheme.primary.withOpacity(0.08),
+              theme.colorScheme.primary.withValues(alpha: 0.08),
               theme.colorScheme.surface,
             ],
           ),
@@ -91,7 +116,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
-                    side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.3)),
+                    side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(32),
@@ -119,6 +144,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
+
+                        // ── Social Login ──
+                        const SocialLoginButtons(actionLabel: 'Sign up'),
 
                         // ── Form ──
                         AutofillGroup(

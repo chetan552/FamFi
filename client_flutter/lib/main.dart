@@ -35,7 +35,9 @@ const _teal       = Color(0xFF2B9EB3);
 const _tealLight  = Color(0xFF5CC8DB);
 const _tealDark   = Color(0xFF1A7A8A);
 const _amber      = Color(0xFFF5A623);
+const _amberLight = Color(0xFFFFCA61); // rgb(255, 202, 97) — kid button, secondary container
 const _coral      = Color(0xFFE85D75);
+const _amberDark  = Color(0xFFC77E00); //#c77e00
 
 class FamFiApp extends ConsumerWidget {
   const FamFiApp({super.key});
@@ -66,12 +68,15 @@ class FamFiApp extends ConsumerWidget {
           primary: _teal,
           onPrimary: Colors.white,
           secondary: _amber,
+          error: Colors.red.shade600,
           onSecondary: Colors.white,
           secondaryContainer: const Color(0xFFFFCA61),
           onSecondaryContainer: const Color(0xFFC77E00),
           tertiary: _coral,
           onTertiary: Colors.white,
           surface: const Color(0xFFF8FAFB),
+          tertiaryContainer: _amberLight,
+          onTertiaryContainer: _amberDark,
         ),
         scaffoldBackgroundColor: const Color(0xFFF8FAFB),
         appBarTheme: AppBarTheme(
@@ -131,7 +136,7 @@ class FamFiApp extends ConsumerWidget {
         ),
         navigationRailTheme: NavigationRailThemeData(
           backgroundColor: const Color(0xFFF8FAFB),
-          indicatorColor: _teal.withOpacity(0.12),
+          indicatorColor: _teal.withValues(alpha: 0.12),
           indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           selectedIconTheme: const IconThemeData(color: _teal, size: 24),
           unselectedIconTheme: IconThemeData(color: Colors.blueGrey.shade400, size: 24),
@@ -140,7 +145,7 @@ class FamFiApp extends ConsumerWidget {
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: Colors.white,
-          indicatorColor: _teal.withOpacity(0.12),
+          indicatorColor: _teal.withValues(alpha: 0.12),
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return GoogleFonts.inter(color: _teal, fontWeight: FontWeight.bold, fontSize: 12);
@@ -159,6 +164,7 @@ class FamFiApp extends ConsumerWidget {
           seedColor: _teal,
           brightness: Brightness.dark,
           primary: _tealLight,
+          error: Colors.red.shade600,
           onPrimary: const Color(0xFF00353E),
           secondary: const Color(0xFFFFCC80),
           onSecondary: const Color(0xFF4A3200),
@@ -169,6 +175,8 @@ class FamFiApp extends ConsumerWidget {
           surfaceContainerHighest: const Color(0xFF22383F),
           onSurfaceVariant: const Color(0xFFB0C4CC),
           outline: const Color(0xFF6D8A94),
+          tertiaryContainer: _amberLight,
+          onTertiaryContainer: _amberDark,
         ),
         scaffoldBackgroundColor: const Color(0xFF0D1B1F),
         appBarTheme: AppBarTheme(
@@ -228,7 +236,7 @@ class FamFiApp extends ConsumerWidget {
         ),
         navigationRailTheme: NavigationRailThemeData(
           backgroundColor: const Color(0xFF0D1B1F),
-          indicatorColor: _tealLight.withOpacity(0.18),
+          indicatorColor: _tealLight.withValues(alpha: 0.18),
           indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           selectedIconTheme: const IconThemeData(color: _tealLight, size: 24),
           unselectedIconTheme: const IconThemeData(color: Color(0xFFB0C4CC), size: 24),
@@ -237,7 +245,7 @@ class FamFiApp extends ConsumerWidget {
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: const Color(0xFF15262C),
-          indicatorColor: _tealLight.withOpacity(0.18),
+          indicatorColor: _tealLight.withValues(alpha: 0.18),
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return GoogleFonts.inter(color: _tealLight, fontWeight: FontWeight.bold, fontSize: 12);

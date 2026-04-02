@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_provider.dart';
+import 'social_login_buttons.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -91,7 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              theme.colorScheme.primary.withOpacity(0.08),
+              theme.colorScheme.primary.withValues(alpha: 0.08),
               theme.colorScheme.surface,
             ],
           ),
@@ -106,7 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
-                    side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.3)),
+                    side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(32),
@@ -134,6 +135,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
+
+                        // ── Social Login ──
+                        const SocialLoginButtons(actionLabel: 'Continue'),
 
                         // ── Form ──
                         AutofillGroup(
@@ -239,11 +243,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         ElevatedButton.icon(
                           onPressed: () => context.go('/child-login'),
-                          icon: const Text('👦', style: TextStyle(fontSize: 18)),
+                          icon: Icon(Icons.child_care_outlined, color: theme.colorScheme.onTertiaryContainer),//const Text('👦', style: TextStyle(fontSize: 18)),
                           label: const Text("I'm a Kid", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.secondaryContainer,
-                            foregroundColor: theme.colorScheme.onSecondaryContainer,
+                            backgroundColor: theme.colorScheme.tertiaryContainer,
+                            foregroundColor: theme.colorScheme.onTertiaryContainer,
                             minimumSize: const Size.fromHeight(50),
                             elevation: 0,
                           ),

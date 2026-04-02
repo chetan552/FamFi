@@ -155,7 +155,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -173,7 +173,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                             leading: Container(
                               width: 44,
                               height: 44,
-                              decoration: BoxDecoration(color: color.withOpacity(0.2), shape: BoxShape.circle),
+                              decoration: BoxDecoration(color: color.withValues(alpha: 0.2), shape: BoxShape.circle),
                               alignment: Alignment.center,
                               child: Icon(config['icon'] as IconData, color: color),
                             ),
@@ -182,7 +182,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                             trailing: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isNegative ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                color: isNegative ? Colors.red.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(

@@ -22,15 +22,40 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
     });
   }
 
+  @override
+  void dispose() {
+    for (final s in _settings.values) {
+      s.controller.dispose();
+    }
+    super.dispose();
+  }
+
   void _syncSettings() {
     final familyState = ref.read(familyProvider);
+    // Dispose controllers for any removed templates
+    final newIds = familyState.bucketTemplates.map((bt) => bt.id).toSet();
+    _settings.removeWhere((id, setting) {
+      if (!newIds.contains(id)) {
+        setting.controller.dispose();
+        return true;
+      }
+      return false;
+    });
+
     final initial = <String, _LocalSetting>{};
     for (final bt in familyState.bucketTemplates) {
       final existing = familyState.interestSettings.where((s) => s.templateId == bt.id).firstOrNull;
-      initial[bt.id] = _LocalSetting(
-        rate: existing != null ? existing.ratePercent.toString() : '0',
-        match: existing?.matchEnabled ?? false,
-      );
+      final rateStr = existing != null ? existing.ratePercent.toString() : '0';
+      if (_settings.containsKey(bt.id)) {
+        // Keep existing controller, just update match
+        _settings[bt.id]!.match = existing?.matchEnabled ?? false;
+        initial[bt.id] = _settings[bt.id]!;
+      } else {
+        initial[bt.id] = _LocalSetting(
+          rate: rateStr,
+          match: existing?.matchEnabled ?? false,
+        );
+      }
     }
     setState(() {
       _settings.clear();
@@ -44,7 +69,7 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
 
     try {
       for (final entry in _settings.entries) {
-        final rate = double.tryParse(entry.value.rate) ?? 0.0;
+        final rate = double.tryParse(entry.value.controller.text) ?? 0.0;
         await ref.read(familyProvider.notifier).saveInterestSetting(entry.key, rate, entry.value.match);
       }
     } catch (e) {
@@ -89,7 +114,7 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
         title: const Text('Interest & Match'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -116,7 +141,7 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
             if (familyState.bucketTemplates.isEmpty)
               Card(
                 elevation: 0,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Text(
@@ -159,8 +184,7 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
                                   suffixText: '%',
                                   isDense: true,
                                 ),
-                                controller: TextEditingController(text: _settings[bt.id]?.rate ?? '0')
-                                  ..selection = TextSelection.collapsed(offset: _settings[bt.id]?.rate.length ?? 0),
+                                controller: _settings[bt.id]?.controller,
                                 onChanged: (val) {
                                   _settings[bt.id]?.rate = val;
                                 },
@@ -198,13 +222,21 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
               ],
 
               const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _saving || familyState.loading ? null : _handleSaveAll,
-                icon: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
-                label: const Text('Save Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _saving || familyState.loading ? null : _handleSaveAll,
+                      icon: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
+                      label: const Text('Save Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
@@ -217,7 +249,7 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.deepPurpleAccent.withOpacity(0.4)),
+                  side: BorderSide(color: Colors.deepPurpleAccent.withValues(alpha: 0.4)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -231,13 +263,21 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
                         style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                       ),
                       const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _processing || familyState.loading ? null : _handleProcessInterest,
-                        icon: _processing ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.account_balance),
-                        label: const Text('Process Interest Now', style: TextStyle(fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent,
-                          foregroundColor: Colors.white,
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                                onPressed: _processing || familyState.loading ? null : _handleProcessInterest,
+                                icon: _processing ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.account_balance),
+                                label: const Text('Process Interest Now', style: TextStyle(fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurpleAccent,
+                                  foregroundColor: Colors.white,
+                                ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -256,5 +296,9 @@ class _InterestSettingsScreenState extends ConsumerState<InterestSettingsScreen>
 class _LocalSetting {
   String rate;
   bool match;
-  _LocalSetting({required this.rate, required this.match});
+  late final TextEditingController controller;
+
+  _LocalSetting({required this.rate, required this.match}) {
+    controller = TextEditingController(text: rate);
+  }
 }

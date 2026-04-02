@@ -117,7 +117,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              theme.colorScheme.secondary.withOpacity(0.12),
+              theme.colorScheme.secondary.withValues(alpha: 0.12),
               theme.colorScheme.surface,
             ],
           ),
@@ -154,7 +154,7 @@ class _ChildLoginScreenState extends ConsumerState<ChildLoginScreen> {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
-                          side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.3)),
+                          side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(32),
@@ -279,9 +279,9 @@ class _ChildCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: theme.colorScheme.secondaryContainer,
-          border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.3), width: 2),
+          border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.3), width: 2),
           boxShadow: [
-            BoxShadow(color: theme.colorScheme.secondary.withOpacity(0.12), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(color: theme.colorScheme.secondary.withValues(alpha: 0.12), blurRadius: 12, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(

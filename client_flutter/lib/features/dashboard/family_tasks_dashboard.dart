@@ -274,7 +274,7 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
                             ElevatedButton(
                               onPressed: () => Navigator.pop(context, true),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
+                                backgroundColor: theme.colorScheme.error,
                                 foregroundColor: Colors.white,
                               ),
                               child: const Text('EXIT'),

@@ -151,6 +151,12 @@ class _AddEditChildModalState extends ConsumerState<_AddEditChildModal> {
     _emoji = widget.child?.avatarEmoji ?? '😊';
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   void _handleSave() async {
     if (_nameController.text.trim().isEmpty) return;
     

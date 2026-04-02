@@ -100,7 +100,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Withdraw / Spend')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             const Icon(Icons.outbound, size: 48),
@@ -205,19 +205,29 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                     ],
 
                     const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      onPressed: (_isLoading || _childId == null || _templateId == null || _amountController.text.isEmpty) ? null : _handleWithdraw,
-                      icon: _isLoading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.outbound),
-                      label: Text(_isLoading ? 'Processing...' : 'Confirm Withdrawal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: (_isLoading || _childId == null || _templateId == null || _amountController.text.isEmpty) ? null : _handleWithdraw,
+                            icon: _isLoading ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.outbound),
+                            label: Text(_isLoading ? 'Processing...' : 'Confirm Withdrawal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _isLoading ? null : () => context.pop(),
-                      child: const Text('Cancel', style: TextStyle(fontSize: 16)),
+                    Center(
+                      child: TextButton(
+                        onPressed: _isLoading ? null : () => context.pop(),
+                        child: const Text('Cancel', style: TextStyle(fontSize: 16)),
+                      ),
                     ),
                   ],
                 ),

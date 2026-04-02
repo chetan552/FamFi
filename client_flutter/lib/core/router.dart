@@ -7,6 +7,7 @@ import '../features/auth/auth_provider.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../features/auth/child_login_screen.dart';
+import '../features/auth/complete_profile_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/chores/chores_screen.dart';
 import '../features/chores/add_chore_screen.dart';
@@ -55,7 +56,8 @@ GoRouter appRouter(Ref ref) {
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/signup' ||
           state.matchedLocation == '/child-login' ||
-          state.matchedLocation == '/welcome';
+          state.matchedLocation == '/welcome' ||
+          state.matchedLocation == '/complete-profile';
 
       if (!isLoggedIn && !isAuthRoute) return '/welcome';
       if (isLoggedIn && isAuthRoute) return '/';
@@ -77,6 +79,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/child-login',
         builder: (context, state) => const ChildLoginScreen(),
+      ),
+      GoRoute(
+        path: '/complete-profile',
+        builder: (context, state) => const CompleteProfileScreen(),
       ),
       GoRoute(
         path: '/family-setup',

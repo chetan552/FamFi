@@ -91,7 +91,7 @@ class _BucketTemplatesScreenState extends ConsumerState<BucketTemplatesScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Spending Buckets')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             const Text('🪣', style: TextStyle(fontSize: 48)),
@@ -119,7 +119,7 @@ class _BucketTemplatesScreenState extends ConsumerState<BucketTemplatesScreen> {
             if (templates.isEmpty)
               Card(
                 elevation: 0,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 child: const Padding(
                   padding: EdgeInsets.all(32.0),
                   child: Column(
@@ -166,15 +166,20 @@ class _BucketTemplatesScreenState extends ConsumerState<BucketTemplatesScreen> {
 
             if (templates.isNotEmpty) ...[
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => context.go('/'),
-                  icon: const Icon(Icons.check),
-                  label: const Text('Finish Setup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.go('/'),
+                      icon: const Icon(Icons.check),
+                      label: const Text('Finish Setup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -214,6 +219,12 @@ class _AddEditBucketModalState extends ConsumerState<_AddEditBucketModal> {
     _nameController = TextEditingController(text: widget.template?.name ?? '');
     _selectedEmoji = widget.template?.emoji ?? '💰';
     _selectedColor = widget.template?.color ?? _bucketColors[0];
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   void _handleSave() async {

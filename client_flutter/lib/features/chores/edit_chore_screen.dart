@@ -23,6 +23,14 @@ class _EditChoreScreenState extends ConsumerState<EditChoreScreen> {
   bool _isInitialized = false;
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _valueController.dispose();
+    _dueDateController.dispose();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
@@ -104,7 +112,7 @@ class _EditChoreScreenState extends ConsumerState<EditChoreScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Chore')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -204,18 +212,28 @@ class _EditChoreScreenState extends ConsumerState<EditChoreScreen> {
                       const SizedBox(height: 16),
                     ],
 
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: familyState.loading ? null : _handleSave,
+                            child: familyState.loading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ),
+                        ),
                       ),
-                      onPressed: familyState.loading ? null : _handleSave,
-                      child: familyState.loading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => context.pop(),
-                      child: const Text('Cancel'),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => context.pop(),
+                        child: const Text('Cancel'),
+                      ),
                     ),
                   ],
                 ),

@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../family/family_provider.dart';
-
-// ─── OpenAI API key ────────────────────────────────────────────────────────
-// TODO: move to a secure backend call before production
-const _openAiKey =
-    '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';
+import '../../core/env.dart';
 
 // ─── Message model ─────────────────────────────────────────────────────────
 class _Msg {
@@ -117,7 +113,7 @@ Add relevant emojis to make it feel fun 🎉
         Uri.parse('https://api.openai.com/v1/chat/completions'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_openAiKey',
+          'Authorization': 'Bearer ${Env.openAiKey}',
         },
         body: jsonEncode({
           'model': 'gpt-4o-mini',
@@ -156,7 +152,7 @@ Add relevant emojis to make it feel fun 🎉
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.15),
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -175,78 +171,78 @@ Add relevant emojis to make it feel fun 🎉
       ),
       body: Column(
         children: [
-          // ── Chat messages ──────────────────────────────────────────
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: _messages.length + (_loading ? 1 : 0),
-              itemBuilder: (context, i) {
-                if (_loading && i == _messages.length) {
-                  return _buildTypingIndicator(theme);
-                }
-                final msg = _messages[i];
-                return _buildBubble(context, theme, msg);
-              },
-            ),
-          ),
-
-          // ── Suggestion chips (only on first message) ───────────────
-          if (isFirstMessage)
-            SizedBox(
-              height: 44,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _suggestions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => ActionChip(
-                  label: Text(_suggestions[i], style: const TextStyle(fontSize: 12)),
-                  onPressed: () => _send(_suggestions[i]),
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.08),
-                  side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.2)),
+              // ── Chat messages ──────────────────────────────────────────
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: _messages.length + (_loading ? 1 : 0),
+                  itemBuilder: (context, i) {
+                    if (_loading && i == _messages.length) {
+                      return _buildTypingIndicator(theme);
+                    }
+                    final msg = _messages[i];
+                    return _buildBubble(context, theme, msg);
+                  },
                 ),
               ),
-            ),
-          if (isFirstMessage) const SizedBox(height: 8),
 
-          // ── Input bar ──────────────────────────────────────────────
-          Container(
-            color: theme.colorScheme.surface,
-            padding: EdgeInsets.fromLTRB(16, 8, 8, MediaQuery.of(context).viewInsets.bottom + 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Ask me a money question...',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: _send,
-                    enabled: !_loading,
-                    minLines: 1,
-                    maxLines: 3,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  child: IconButton.filled(
-                    icon: Icon(_loading ? Icons.hourglass_bottom : Icons.send_rounded),
-                    onPressed: _loading ? null : () => _send(_controller.text),
-                    style: IconButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(48, 48),
+              // ── Suggestion chips (only on first message) ───────────────
+              if (isFirstMessage)
+                SizedBox(
+                  height: 44,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _suggestions.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) => ActionChip(
+                      label: Text(_suggestions[i], style: const TextStyle(fontSize: 12)),
+                      onPressed: () => _send(_suggestions[i]),
+                      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
+              if (isFirstMessage) const SizedBox(height: 8),
+
+              // ── Input bar ──────────────────────────────────────────────
+              Container(
+                color: theme.colorScheme.surface,
+                padding: EdgeInsets.fromLTRB(16, 8, 8, MediaQuery.of(context).viewInsets.bottom + 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Ask me a money question...',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: _send,
+                        enabled: !_loading,
+                        minLines: 1,
+                        maxLines: 3,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      child: IconButton.filled(
+                        icon: Icon(_loading ? Icons.hourglass_bottom : Icons.send_rounded),
+                        onPressed: _loading ? null : () => _send(_controller.text),
+                        style: IconButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(48, 48),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
       ),
     );
   }
@@ -264,7 +260,7 @@ Add relevant emojis to make it feel fun 🎉
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.15),
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -310,7 +306,7 @@ Add relevant emojis to make it feel fun 🎉
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.15),
+              color: theme.colorScheme.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,

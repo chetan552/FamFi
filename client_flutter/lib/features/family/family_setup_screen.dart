@@ -15,6 +15,13 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
   final _nameController = TextEditingController();
   final _inviteController = TextEditingController();
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _inviteController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleCreate() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
@@ -50,7 +57,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Set Up Your Family')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

@@ -367,7 +367,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -654,7 +654,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
                             ElevatedButton(
                               onPressed: () { Navigator.pop(ctx); _handleSignOut(); },
-                              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.error),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.error),
                               child: const Text('Sign Out'),
                             ),
                           ],

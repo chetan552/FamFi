@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'social_auth_service.dart';
 
 part 'auth_provider.g.dart';
 
@@ -65,5 +66,33 @@ class Auth extends _$Auth {
   Future<void> deleteAccount() async {
     await _supabase.rpc('delete_user');
     await signOut();
+  }
+
+  /// Sign in with Google. Returns `true` if this is a new user needing profile completion.
+  Future<bool> signInWithGoogle() async {
+    final service = SocialAuthService();
+    return service.signInWithGoogle();
+  }
+
+  /// Create a user profile row for social sign-up users.
+  Future<void> completeProfile(String name) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    // Only insert if no profile exists yet (prevents duplicates on retry)
+    final existing = await _supabase
+        .from('users')
+        .select('id')
+        .eq('auth_id', user.id)
+        .maybeSingle();
+
+    if (existing == null) {
+      await _supabase.from('users').insert({
+        'auth_id': user.id,
+        'role': 'parent',
+        'name': name,
+        'avatar_emoji': '😊',
+      });
+    }
   }
 }

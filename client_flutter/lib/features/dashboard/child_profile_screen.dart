@@ -159,7 +159,7 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             // Profile Header
@@ -194,9 +194,9 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: color.withOpacity(0.5), width: 1.5),
+                      border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -257,26 +257,36 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
               ),
 
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => context.push(Uri(path: '/withdraw', queryParameters: {'childId': child.id}).toString()),
-                icon: const Icon(Icons.outbound),
-                label: const Text('Record a Spend'),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push(Uri(path: '/withdraw', queryParameters: {'childId': child.id}).toString()),
+                    icon: const Icon(Icons.outbound),
+                    label: const Text('Record a Spend'),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _handleDelete(child.name),
-                icon: const Icon(Icons.person_remove),
-                label: Text('Remove ${child.name} from Family'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                  side: BorderSide(color: theme.colorScheme.error),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _handleDelete(child.name),
+                    icon: const Icon(Icons.person_remove),
+                    label: Text('Remove ${child.name} from Family'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(color: theme.colorScheme.error),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
                 ),
               ),
             ),
