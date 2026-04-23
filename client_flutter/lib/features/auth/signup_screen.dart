@@ -86,6 +86,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width <= 380;
+    final hPad = isSmall ? 16.0 : 24.0;
+    final vPad = isSmall ? 12.0 : 24.0;
+    final cardPad = isSmall ? 20.0 : 28.0;
+    final bigGap = isSmall ? 16.0 : 24.0;
+    final smallGap = isSmall ? 10.0 : 14.0;
 
     return Scaffold(
       body: Container(
@@ -102,7 +108,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Card(
@@ -112,31 +118,33 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(cardPad),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // ── Branding ──
-                        const Center(child: Text('🏦', style: TextStyle(fontSize: 56))),
-                        const SizedBox(height: 8),
+                        Center(child: Text('🏦', style: TextStyle(fontSize: isSmall ? 36 : 48))),
+                        SizedBox(height: isSmall ? 4 : 6),
                         Center(
                           child: Text(
                             'FamFi',
-                            style: theme.textTheme.headlineMedium?.copyWith(
+                            style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5,
                               color: theme.colorScheme.primary,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Center(
-                          child: Text(
-                            "Your Family's Virtual Bank",
-                            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        if (!isSmall) ...[
+                          const SizedBox(height: 4),
+                          Center(
+                            child: Text(
+                              "Your Family's Virtual Bank",
+                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 32),
+                        ],
+                        SizedBox(height: bigGap),
 
                         // ── Social Login ──
                         const SocialLoginButtons(actionLabel: 'Sign up'),
@@ -153,7 +161,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 textInputAction: TextInputAction.next,
                                 onChanged: (v) => _name = v,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: smallGap),
                               TextFormField(
                                 decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
                                 keyboardType: TextInputType.emailAddress,
@@ -161,7 +169,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 textInputAction: TextInputAction.next,
                                 onChanged: (v) => _email = v,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: smallGap),
                               TextFormField(
                                 obscureText: !_showPassword,
                                 decoration: InputDecoration(
@@ -176,7 +184,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 textInputAction: TextInputAction.next,
                                 onChanged: (v) => _password = v,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: smallGap),
                               TextFormField(
                                 obscureText: !_showPassword,
                                 decoration: const InputDecoration(labelText: 'Confirm Password', prefixIcon: Icon(Icons.lock_clock_outlined)),
@@ -189,41 +197,40 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ),
                         ),
 
-
                         if (_error != null)
                           Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.only(top: 6),
                             child: Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 12)),
                           ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: smallGap + 4),
 
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleSignup,
-                          style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                          style: ElevatedButton.styleFrom(minimumSize: Size.fromHeight(isSmall ? 48 : 52)),
                           child: _isLoading
                               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                               : const Text('Create Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: smallGap),
 
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Text.rich(
                             TextSpan(
                               text: 'By signing up, you agree to our ',
-                              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12, height: 1.5),
+                              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 11, height: 1.5),
                               children: [
                                 WidgetSpan(
                                   child: InkWell(
                                     onTap: () => _launchUrl('https://famfibank.app/terms'),
-                                    child: Text('Terms of Service', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 12)),
+                                    child: Text('Terms of Service', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 11)),
                                   ),
                                 ),
                                 const TextSpan(text: ' and '),
                                 WidgetSpan(
                                   child: InkWell(
                                     onTap: () => _launchUrl('https://famfibank.app/privacy'),
-                                    child: Text('Privacy Policy', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 12)),
+                                    child: Text('Privacy Policy', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 11)),
                                   ),
                                 ),
                                 const TextSpan(text: '.'),
@@ -232,15 +239,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: smallGap + 4),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Already have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-                            InkWell(
+                            Text("Already have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
+                            GestureDetector(
                               onTap: () => context.go('/login'),
-                              child: Text('Sign In', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                              child: Text('Sign In', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 13)),
                             ),
                           ],
                         ),

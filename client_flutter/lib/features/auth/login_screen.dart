@@ -79,6 +79,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     ref.watch(authProvider);
     final theme = Theme.of(context);
+    final isSmall = MediaQuery.sizeOf(context).width <= 380;
+    final hPad = isSmall ? 16.0 : 24.0;
+    final vPad = isSmall ? 16.0 : 28.0;
+    final cardPad = isSmall ? 20.0 : 28.0;
+    final bigGap = isSmall ? 16.0 : 28.0;
+    final smallGap = isSmall ? 12.0 : 16.0;
 
     return Scaffold(
       body: Container(
@@ -95,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Card(
@@ -105,31 +111,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(cardPad),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // ── Branding ──
-                        const Center(child: Text('🏦', style: TextStyle(fontSize: 56))),
-                        const SizedBox(height: 8),
+                        Center(child: Text('🏦', style: TextStyle(fontSize: isSmall ? 40 : 52))),
+                        SizedBox(height: isSmall ? 4 : 6),
                         Center(
                           child: Text(
                             'FamFi',
-                            style: theme.textTheme.headlineMedium?.copyWith(
+                            style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5,
                               color: theme.colorScheme.primary,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Center(
-                          child: Text(
-                            'Welcome back!',
-                            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        if (!isSmall) ...[
+                          const SizedBox(height: 4),
+                          Center(
+                            child: Text(
+                              'Welcome back!',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 32),
+                        ],
+                        SizedBox(height: bigGap),
 
                         // ── Social Login ──
                         const SocialLoginButtons(actionLabel: 'Continue'),
@@ -149,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   prefixIcon: Icon(Icons.email_outlined),
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: smallGap),
                               TextFormField(
                                 obscureText: !_showPassword,
                                 textInputAction: TextInputAction.done,
@@ -169,10 +179,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
 
-
                         if (_error != null)
                           Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.only(top: 6),
                             child: Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 12)),
                           ),
 
@@ -207,34 +216,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              minimumSize: const Size(50, 30),
+                              minimumSize: const Size(50, 36),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text('Forgot Password?', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13)),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: isSmall ? 4 : 8),
 
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleLogin,
-                          style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                          style: ElevatedButton.styleFrom(minimumSize: Size.fromHeight(isSmall ? 48 : 52)),
                           child: _isLoading
                               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                               : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: smallGap),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Don't have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-                            InkWell(
+                            Text("Don't have an account? ", style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
+                            GestureDetector(
                               onTap: () => context.go('/signup'),
-                              child: Text('Sign Up', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                              child: Text('Sign Up', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 13)),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: smallGap),
 
                         ElevatedButton.icon(
                           onPressed: () => context.go('/child-login'),
@@ -243,7 +252,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.colorScheme.tertiaryContainer,
                             foregroundColor: theme.colorScheme.onTertiaryContainer,
-                            minimumSize: const Size.fromHeight(50),
+                            minimumSize: Size.fromHeight(isSmall ? 46 : 50),
                             elevation: 0,
                           ),
                         ),
