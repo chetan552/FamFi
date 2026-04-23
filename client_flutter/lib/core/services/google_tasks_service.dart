@@ -144,7 +144,7 @@ class GoogleTasksService {
           if (title == null || title.trim().isEmpty) continue;
 
           final existingChore = await supabase.from('chores')
-              .select('id, status')
+              .select('id, status, value')
               .eq('google_task_id', task['id'])
               .eq('family_id', familyId)
               .maybeSingle();
@@ -152,8 +152,16 @@ class GoogleTasksService {
           final taskStatus = task['status'] == 'completed' ? 'done' : 'assigned';
 
           if (existingChore != null) {
+            final updates = <String, dynamic>{};
             if (task['status'] == 'completed' && existingChore['status'] == 'assigned') {
-              await supabase.from('chores').update({'status': 'done'}).eq('id', existingChore['id']);
+              updates['status'] = 'done';
+            }
+            final storedValue = (existingChore['value'] as num?)?.toDouble() ?? 0.0;
+            if ((storedValue - mapping.defaultReward).abs() > 0.001) {
+              updates['value'] = mapping.defaultReward;
+            }
+            if (updates.isNotEmpty) {
+              await supabase.from('chores').update(updates).eq('id', existingChore['id']);
               synced++;
             }
           } else {

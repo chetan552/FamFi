@@ -361,6 +361,11 @@ class FamilyNotifier extends _$FamilyNotifier {
     await fetchGoogleMappings();
   }
 
+  Future<void> updateGoogleMappingReward(String mappingId, double reward) async {
+    await _supabase.from('google_task_mappings').update({'default_reward': reward}).eq('id', mappingId);
+    await fetchGoogleMappings();
+  }
+
   Future<void> deleteGoogleMapping(String mappingId) async {
     await _supabase.from('google_task_mappings').delete().eq('id', mappingId);
     await fetchGoogleMappings();

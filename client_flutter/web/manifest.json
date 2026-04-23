@@ -1,11 +1,11 @@
 {
-    "name": "fam_fi_app",
-    "short_name": "fam_fi_app",
+    "name": "FamFi — Family Piggy Bank",
+    "short_name": "FamFi",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#009688",
+    "theme_color": "#009688",
+    "description": "The fun virtual family piggy bank. Kids earn pocket money through chores, save in goal buckets, and learn real money skills.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -106,6 +106,46 @@ class _GoogleTasksScreenState extends ConsumerState<GoogleTasksScreen> {
     );
   }
 
+  void _openEditRewardDialog(GoogleTaskMapping mapping) {
+    final controller = TextEditingController(text: mapping.defaultReward.toStringAsFixed(2));
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Edit Reward — ${mapping.googleTasklistTitle}'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Default Reward (\$)',
+            prefixIcon: Icon(Icons.attach_money),
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final reward = double.tryParse(controller.text);
+              if (reward == null || reward < 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter a valid reward amount.')),
+                );
+                return;
+              }
+              Navigator.pop(ctx);
+              ref.read(familyProvider.notifier).updateGoogleMappingReward(mapping.id, reward);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Reward updated to \$${reward.toStringAsFixed(2)}. Sync to apply.')),
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleSync() async {
     final result = await ref.read(familyProvider.notifier).syncGoogleTasks();
     if (!mounted) return;
@@ -213,15 +253,26 @@ class _GoogleTasksScreenState extends ConsumerState<GoogleTasksScreen> {
                           Text('Last synced: ${mapping.lastSyncedAt}', style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                       ],
                     ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.close, color: theme.colorScheme.error),
-                      onPressed: () {
-                        ref.read(familyProvider.notifier).deleteGoogleMapping(mapping.id);
-                      },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit_outlined, color: theme.colorScheme.primary),
+                          tooltip: 'Edit reward',
+                          onPressed: () => _openEditRewardDialog(mapping),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close, color: theme.colorScheme.error),
+                          tooltip: 'Remove mapping',
+                          onPressed: () {
+                            ref.read(familyProvider.notifier).deleteGoogleMapping(mapping.id);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 );
-              }).toList(),
+              }),
               const SizedBox(height: 24),
             ],
 
@@ -283,7 +334,7 @@ class _MapListModal extends ConsumerStatefulWidget {
 }
 
 class _MapListModalState extends ConsumerState<_MapListModal> {
-  final _rewardController = TextEditingController(text: '1.00');
+  final _rewardController = TextEditingController(text: '0.00');
   String? _childId;
 
   void _handleSave() {
