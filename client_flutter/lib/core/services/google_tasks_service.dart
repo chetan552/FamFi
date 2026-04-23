@@ -48,6 +48,14 @@ class GoogleTasksService {
     );
 
     if (response.statusCode != 200) {
+      try {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        if (body['error'] == 'invalid_grant') {
+          throw Exception('google_auth_expired');
+        }
+      } catch (e) {
+        if (e.toString().contains('google_auth_expired')) rethrow;
+      }
       throw Exception('Token refresh failed: ${response.body}');
     }
     return jsonDecode(response.body);
@@ -62,17 +70,24 @@ class GoogleTasksService {
 
     if (expiresAt.difference(now).inMinutes < 5) {
       final refreshToken = tokenData['refresh_token'] as String?;
-      if (refreshToken == null) throw Exception('No refresh token stored. Please reconnect.');
-      
-      final refreshed = await refreshAccessToken(refreshToken);
-      final newExpiresAt = now.add(Duration(seconds: refreshed['expires_in']));
+      if (refreshToken == null) {
+        await supabase.from('google_tokens').delete().eq('user_id', userId);
+        throw Exception('google_auth_expired');
+      }
 
-      await supabase.from('google_tokens').update({
-        'access_token': refreshed['access_token'],
-        'expires_at': newExpiresAt.toIso8601String(),
-      }).eq('id', tokenData['id']);
-
-      return refreshed['access_token'] as String;
+      try {
+        final refreshed = await refreshAccessToken(refreshToken);
+        final newExpiresAt = now.add(Duration(seconds: refreshed['expires_in']));
+        await supabase.from('google_tokens').update({
+          'access_token': refreshed['access_token'],
+          'expires_at': newExpiresAt.toIso8601String(),
+        }).eq('id', tokenData['id']);
+        return refreshed['access_token'] as String;
+      } catch (_) {
+        // Stale token — remove it so the UI shows the reconnect button
+        await supabase.from('google_tokens').delete().eq('user_id', userId);
+        rethrow;
+      }
     }
 
     return tokenData['access_token'] as String;

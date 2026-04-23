@@ -380,6 +380,11 @@ class FamilyNotifier extends _$FamilyNotifier {
       final service = GoogleTasksService(_supabase);
       final result = await service.syncTasksForFamily(userId, familyId);
       await fetchFamily();
+      final errors = result['errors'] as List;
+      if (errors.isNotEmpty) {
+        // Re-check connection in case the token was deleted (e.g. invalid_grant)
+        await checkGoogleConnection();
+      }
       return result;
     } finally {
       state = state.copyWith(loading: false);

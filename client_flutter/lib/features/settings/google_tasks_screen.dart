@@ -114,9 +114,16 @@ class _GoogleTasksScreenState extends ConsumerState<GoogleTasksScreen> {
     final synced = result['synced'] as int;
 
     if (errors.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errors.first.toString())));
+      final raw = errors.first.toString();
+      final msg = raw.contains('google_auth_expired')
+          ? 'Google authorization expired. Please reconnect your Google account.'
+          : raw.replaceAll('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(msg),
+        duration: const Duration(seconds: 5),
+      ));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Synced $synced task(s)! 🔄')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Synced $synced task(s)!')));
     }
   }
 
