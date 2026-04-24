@@ -13,8 +13,37 @@ class ChoresScreen extends ConsumerStatefulWidget {
 
 class _ChoresScreenState extends ConsumerState<ChoresScreen> {
   final Set<String> _selected = {};
+  bool _refreshing = false;
 
   bool get _selectionMode => _selected.isNotEmpty;
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      final isConnected = ref.read(familyProvider.select((s) => s.googleConnected));
+      await ref.read(familyProvider.notifier).fetchFamily();
+      if (isConnected && mounted) {
+        final result = await ref.read(familyProvider.notifier).syncGoogleTasks();
+        if (mounted) {
+          final errors = result['errors'] as List;
+          final synced = result['synced'] as int;
+          final msg = errors.isNotEmpty
+              ? (errors.first.toString().contains('google_auth_expired')
+                  ? 'Google authorization expired. Reconnect in Settings.'
+                  : errors.first.toString().replaceAll('Exception: ', ''))
+              : synced > 0
+                  ? 'Synced $synced task${synced == 1 ? '' : 's'} from Google'
+                  : 'Chores up to date';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+          );
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
 
   void _toggleSelection(String id) {
     setState(() {
@@ -126,6 +155,18 @@ class _ChoresScreenState extends ConsumerState<ChoresScreen> {
             )
           : AppBar(
               title: const Text('Family Chores', style: TextStyle(fontWeight: FontWeight.bold)),
+              actions: [
+                _refreshing
+                    ? const Padding(
+                        padding: EdgeInsets.all(14),
+                        child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: 'Refresh & sync',
+                        onPressed: _refresh,
+                      ),
+              ],
             ),
       floatingActionButton: _selectionMode
           ? null
@@ -136,7 +177,7 @@ class _ChoresScreenState extends ConsumerState<ChoresScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           _clearSelection();
-          await ref.read(familyProvider.notifier).fetchFamily();
+          await _refresh();
         },
         child: chores.isEmpty
             ? Center(
