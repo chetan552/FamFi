@@ -14,6 +14,7 @@ class SocialAuthService {
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: Uri.base.origin,
+        authScreenLaunchMode: LaunchMode.inAppWebView,
       );
       // Web redirects away — this line is only reached if popup mode is used
       return false;

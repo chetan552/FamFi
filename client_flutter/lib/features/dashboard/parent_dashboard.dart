@@ -12,8 +12,37 @@ class ParentDashboard extends ConsumerStatefulWidget {
 }
 
 class _ParentDashboardState extends ConsumerState<ParentDashboard> {
-  // Data loading is handled by NavigationScaffold.initState()
-  // No need to duplicate fetchFamily() here
+  bool _refreshing = false;
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      await ref.read(familyProvider.notifier).fetchFamily();
+      final isConnected = ref.read(familyProvider.select((s) => s.googleConnected));
+      if (isConnected && mounted) {
+        final result = await ref.read(familyProvider.notifier).syncGoogleTasks();
+        if (mounted) {
+          final errors = result['errors'] as List;
+          final synced = result['synced'] as int;
+          final msg = errors.isNotEmpty
+              ? (errors.first.toString().contains('google_auth_expired')
+                  ? 'Google authorization expired. Reconnect in Settings.'
+                  : errors.first.toString().replaceAll('Exception: ', ''))
+              : synced > 0
+                  ? 'Synced $synced task${synced == 1 ? '' : 's'} from Google'
+                  : null;
+          if (msg != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+            );
+          }
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +76,16 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
       appBar: AppBar(
         title: const Text(''),
         actions: [
+          _refreshing
+              ? const Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Refresh & sync',
+                  onPressed: _refresh,
+                ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => context.push('/settings'),
@@ -54,7 +93,7 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.read(familyProvider.notifier).fetchFamily(),
+        onRefresh: _refresh,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           children: [
