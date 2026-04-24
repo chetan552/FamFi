@@ -37,6 +37,7 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
   DateTime? _lastUpdated;
   DateTime _now = DateTime.now();
   bool _isFullscreen = false;
+  bool _manualRefreshing = false;
 
   @override
   void initState() {
@@ -67,6 +68,39 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
         }
       }
     });
+  }
+
+  Future<void> _manualRefresh() async {
+    if (_manualRefreshing) return;
+    setState(() => _manualRefreshing = true);
+    try {
+      await ref.read(familyProvider.notifier).fetchFamily();
+      final familyState = ref.read(familyProvider);
+      if (familyState.googleConnected) {
+        await ref.read(familyProvider.notifier).syncGoogleTasks();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Synced with Google Tasks'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+      if (mounted) setState(() => _lastUpdated = DateTime.now());
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Refresh error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _manualRefreshing = false);
+    }
   }
 
   @override
@@ -241,6 +275,21 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
                         ],
                       ),
                     ),
+                  // Manual refresh
+                  IconButton(
+                    onPressed: _manualRefreshing ? null : _manualRefresh,
+                    icon: _manualRefreshing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.refresh, color: Colors.white),
+                    tooltip: 'Refresh',
+                  ),
                   // Fullscreen toggle
                   IconButton(
                     onPressed: () async {
@@ -297,14 +346,7 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
             // Children grid
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () async {
-                  await ref.read(familyProvider.notifier).fetchFamily();
-                  if (mounted) {
-                    setState(() {
-                      _lastUpdated = DateTime.now();
-                    });
-                  }
-                },
+                onRefresh: _manualRefresh,
                 child: children.isEmpty
                     ? Center(
                         child: Column(
