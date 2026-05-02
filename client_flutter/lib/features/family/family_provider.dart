@@ -357,6 +357,7 @@ class FamilyNotifier extends _$FamilyNotifier {
       'google_tasklist_title': title,
       'child_id': childId,
       'default_reward': reward,
+      'created_by_user_id': state.currentUserProfile?.id,
     });
     await fetchGoogleMappings();
   }
