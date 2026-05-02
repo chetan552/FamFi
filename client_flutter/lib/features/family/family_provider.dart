@@ -318,7 +318,7 @@ class FamilyNotifier extends _$FamilyNotifier {
 
     if (userId == null) throw Exception('User profile not found');
 
-    final expiresAt = DateTime.now().add(Duration(seconds: expiresIn)).toIso8601String();
+    final expiresAt = DateTime.now().toUtc().add(Duration(seconds: expiresIn)).toIso8601String();
     final existing = await _supabase.from('google_tokens').select('id').eq('user_id', userId).maybeSingle();
     
     final tokenData = <String, dynamic>{

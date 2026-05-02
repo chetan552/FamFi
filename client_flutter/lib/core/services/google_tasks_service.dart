@@ -66,7 +66,7 @@ class GoogleTasksService {
     if (tokenData == null) throw Exception('Google account not connected.');
 
     final expiresAt = DateTime.parse(tokenData['expires_at']);
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
 
     if (expiresAt.difference(now).inMinutes < 5) {
       final refreshToken = tokenData['refresh_token'] as String?;
