@@ -128,22 +128,14 @@ Deno.serve(async (req) => {
 
           const { data: existing } = await supabase
             .from('chores')
-            .select('id, status, value')
+            .select('id, status')
             .eq('google_task_id', task.id)
             .eq('family_id', familyId)
             .maybeSingle()
 
           if (existing) {
-            const updates: Record<string, unknown> = {}
             if (task.status === 'completed' && existing.status === 'assigned') {
-              updates.status = 'done'
-            }
-            const storedValue = parseFloat(existing.value)
-            if (Math.abs(storedValue - mapping.default_reward) > 0.001) {
-              updates.value = mapping.default_reward
-            }
-            if (Object.keys(updates).length > 0) {
-              await supabase.from('chores').update(updates).eq('id', existing.id)
+              await supabase.from('chores').update({ status: 'done' }).eq('id', existing.id)
               synced++
             }
           } else {
