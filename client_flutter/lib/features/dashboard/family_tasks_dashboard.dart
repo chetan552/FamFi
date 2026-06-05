@@ -169,10 +169,7 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
 
     // Calculate total family balance
     final familyTotal = children.fold<double>(0, (total, child) {
-      final childBalance = familyState.buckets
-          .where((b) => b.childId == child.id)
-          .fold<double>(0, (sum, b) => sum + b.cachedBalance);
-      return total + childBalance;
+      return total + childBalance(familyState, child.id);
     });
 
     // Calculate pending review count
@@ -388,9 +385,7 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
                           final isExpanded = _expandedChildren[child.id] ?? true;
                           
                           // Get child's balance
-                          final childBalance = familyState.buckets
-                              .where((b) => b.childId == child.id)
-                              .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+                          final childTotalBalance = childBalance(familyState, child.id);
                           
                           // Get child's active chores
                           final assignedChores = chores
@@ -414,7 +409,8 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
 
                           return _ChildCard(
                             child: child,
-                            balance: childBalance,
+                            familyState: familyState,
+                            balance: childTotalBalance,
                             chores: childChores,
                             bucketTemplates: bucketTemplates,
                             buckets: familyState.buckets.where((b) => b.childId == child.id).toList(),
@@ -473,6 +469,7 @@ class _FamilyTasksDashboardState extends ConsumerState<FamilyTasksDashboard> {
 
 class _ChildCard extends StatefulWidget {
   final UserProfile child;
+  final FamilyState familyState;
   final double balance;
   final List<Chore> chores;
   final List<BucketTemplate> bucketTemplates;
@@ -486,6 +483,7 @@ class _ChildCard extends StatefulWidget {
 
   const _ChildCard({
     required this.child,
+    required this.familyState,
     required this.balance,
     required this.chores,
     required this.bucketTemplates,
@@ -519,7 +517,6 @@ class _ChildCardState extends State<_ChildCard> {
     final balance = widget.balance;
     final chores = widget.chores;
     final bucketTemplates = widget.bucketTemplates;
-    final buckets = widget.buckets;
     final isExpanded = widget.isExpanded;
     final onToggleExpand = widget.onToggleExpand;
     final onMarkChoreDone = widget.onMarkChoreDone;
@@ -635,9 +632,7 @@ class _ChildCardState extends State<_ChildCard> {
                     itemCount: bucketTemplates.length,
                     itemBuilder: (context, index) {
                       final template = bucketTemplates[index];
-                      final balance = buckets
-                          .where((b) => b.templateId == template.id)
-                          .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+                      final balance = childTemplateBalance(widget.familyState, child.id, template.id);
                       
                       return Container(
                         margin: const EdgeInsets.only(right: 8),
@@ -894,9 +889,7 @@ class _ChildCardState extends State<_ChildCard> {
                             spacing: 8,
                             runSpacing: 8,
                             children: bucketTemplates.map((template) {
-                              final balance = buckets
-                                  .where((b) => b.templateId == template.id)
-                                  .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+                              final balance = childTemplateBalance(widget.familyState, child.id, template.id);
                               
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

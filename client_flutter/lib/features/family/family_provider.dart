@@ -16,6 +16,8 @@ class FamilyState {
   final List<Chore> chores;
   final List<BucketTemplate> bucketTemplates;
   final List<Bucket> buckets;
+  final Map<String, double> bucketBalances;
+  final Map<String, double> childBalances;
   final List<Transaction> transactions;
   final List<InterestSetting> interestSettings;
   final bool googleConnected;
@@ -31,6 +33,8 @@ class FamilyState {
     this.chores = const [],
     this.bucketTemplates = const [],
     this.buckets = const [],
+    this.bucketBalances = const {},
+    this.childBalances = const {},
     this.transactions = const [],
     this.interestSettings = const [],
     this.googleConnected = false,
@@ -47,6 +51,8 @@ class FamilyState {
     List<Chore>? chores,
     List<BucketTemplate>? bucketTemplates,
     List<Bucket>? buckets,
+    Map<String, double>? bucketBalances,
+    Map<String, double>? childBalances,
     List<Transaction>? transactions,
     List<InterestSetting>? interestSettings,
     bool? googleConnected,
@@ -63,6 +69,8 @@ class FamilyState {
       chores: chores ?? this.chores,
       bucketTemplates: bucketTemplates ?? this.bucketTemplates,
       buckets: buckets ?? this.buckets,
+      bucketBalances: bucketBalances ?? this.bucketBalances,
+      childBalances: childBalances ?? this.childBalances,
       transactions: transactions ?? this.transactions,
       interestSettings: interestSettings ?? this.interestSettings,
       googleConnected: googleConnected ?? this.googleConnected,
@@ -71,6 +79,26 @@ class FamilyState {
       error: clearError ? null : (error ?? this.error),
     );
   }
+}
+
+String bucketBalanceKey(String childId, String templateId) => '$childId:$templateId';
+
+double childBalance(FamilyState state, String childId) {
+  final aggregate = state.childBalances[childId];
+  if (aggregate != null) return aggregate;
+
+  return state.buckets
+      .where((b) => b.childId == childId)
+      .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+}
+
+double childTemplateBalance(FamilyState state, String childId, String templateId) {
+  final aggregate = state.bucketBalances[bucketBalanceKey(childId, templateId)];
+  if (aggregate != null) return aggregate;
+
+  return state.buckets
+      .where((b) => b.childId == childId && b.templateId == templateId)
+      .fold<double>(0, (sum, b) => sum + b.cachedBalance);
 }
 
 @Riverpod(keepAlive: true)
@@ -123,13 +151,25 @@ class FamilyNotifier extends _$FamilyNotifier {
       final childIds = childrenRes.map((c) => c['id']).toList();
       List<dynamic> bucketsRes = [];
       List<dynamic> transactionsRes = [];
+      List<dynamic> balanceRes = [];
       if (childIds.isNotEmpty) {
         bucketsRes = await _supabase.from('buckets').select().inFilter('child_id', childIds).order('year').order('month');
-        // Fetch transactions associated with these kids
-        final bucketIds = bucketsRes.map((b) => b['id']).toList();
-        if (bucketIds.isNotEmpty) {
-           transactionsRes = await _supabase.from('transactions').select().inFilter('bucket_id', bucketIds).order('created_at', ascending: false).limit(100);
-        }
+        final rpcResults = await Future.wait([
+          _supabase.rpc('get_family_bucket_balances'),
+          _supabase.rpc('get_family_recent_transactions', params: {'p_limit': 100}),
+        ]);
+        balanceRes = rpcResults[0] as List;
+        transactionsRes = rpcResults[1] as List;
+      }
+
+      final bucketBalances = <String, double>{};
+      final childBalances = <String, double>{};
+      for (final row in balanceRes) {
+        final childId = row['child_id'] as String;
+        final templateId = row['template_id'] as String;
+        final balance = double.parse(row['balance'].toString());
+        bucketBalances[bucketBalanceKey(childId, templateId)] = balance;
+        childBalances[childId] = (childBalances[childId] ?? 0) + balance;
       }
 
       state = state.copyWith(
@@ -140,6 +180,8 @@ class FamilyNotifier extends _$FamilyNotifier {
         chores: choresRes.map((c) => Chore.fromJson(c)).toList(),
         bucketTemplates: templatesRes.map((t) => BucketTemplate.fromJson(t)).toList(),
         buckets: bucketsRes.map((b) => Bucket.fromJson(b)).toList(),
+        bucketBalances: bucketBalances,
+        childBalances: childBalances,
         transactions: transactionsRes.map((tx) => Transaction.fromJson(tx)).toList(),
         interestSettings: state.interestSettings,
         googleConnected: state.googleConnected,

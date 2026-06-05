@@ -17,9 +17,7 @@ class ChildDashboard extends ConsumerWidget {
     }
 
     final child = familyState.currentUserProfile!;
-    final totalBalance = familyState.buckets
-        .where((b) => b.childId == child.id)
-        .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+    final totalBalance = childBalance(familyState, child.id);
 
     final myChores = familyState.chores
         .where((c) => c.assignedToChildId == child.id && c.status == 'assigned')
@@ -207,9 +205,7 @@ class ChildDashboard extends ConsumerWidget {
                 spacing: 16,
                 runSpacing: 16,
                 children: familyState.bucketTemplates.map((template) {
-                  final balance = familyState.buckets
-                      .where((b) => b.templateId == template.id && b.childId == child.id)
-                      .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+                  final balance = childTemplateBalance(familyState, child.id, template.id);
 
                   final templateColor = template.parsedColor;
                   return SizedBox(

@@ -81,9 +81,7 @@ class _MoneyMentorScreenState extends ConsumerState<MoneyMentorScreen> {
     try {
       final familyState = ref.read(familyProvider);
       final child = familyState.currentUserProfile;
-      final totalBalance = familyState.buckets
-          .where((b) => b.childId == child?.id)
-          .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+      final totalBalance = child == null ? 0.0 : childBalance(familyState, child.id);
       final myChores = familyState.chores
           .where((c) => c.assignedToChildId == child?.id && c.status == 'assigned')
           .toList();

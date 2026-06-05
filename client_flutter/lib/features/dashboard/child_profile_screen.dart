@@ -141,9 +141,7 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
     }
 
     // Safely calculate total balance only for buckets matching this child
-    final totalBalance = familyState.buckets
-        .where((b) => b.childId == child.id)
-        .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+    final totalBalance = childBalance(familyState, child.id);
 
     // Get child's transactions
     final txs = familyState.transactions.where((t) => t.childId == child.id).take(5).toList();
@@ -188,9 +186,7 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
                 spacing: 10,
                 runSpacing: 10,
                 children: familyState.bucketTemplates.map((template) {
-                  final balance = familyState.buckets
-                      .where((b) => b.templateId == template.id && b.childId == child.id)
-                      .fold<double>(0, (sum, b) => sum + b.cachedBalance);
+                  final balance = childTemplateBalance(familyState, child.id, template.id);
                   final color = template.parsedColor;
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

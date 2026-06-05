@@ -54,8 +54,8 @@ class _ParentDashboardState extends ConsumerState<ParentDashboard> {
     }
 
     final balancesByChild = <String, double>{};
-    for (final b in familyState.buckets) {
-      balancesByChild[b.childId] = (balancesByChild[b.childId] ?? 0.0) + b.cachedBalance;
+    for (final child in familyState.children) {
+      balancesByChild[child.id] = childBalance(familyState, child.id);
     }
 
     final activeChoresByChild = <String, int>{};
