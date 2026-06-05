@@ -120,12 +120,11 @@ class FamilyNotifier extends _$FamilyNotifier {
       final choresRes = results[3] as List;
       final templatesRes = results[4] as List;
       
-      final now = DateTime.now();
       final childIds = childrenRes.map((c) => c['id']).toList();
       List<dynamic> bucketsRes = [];
       List<dynamic> transactionsRes = [];
       if (childIds.isNotEmpty) {
-        bucketsRes = await _supabase.from('buckets').select().inFilter('child_id', childIds).eq('month', now.month).eq('year', now.year);
+        bucketsRes = await _supabase.from('buckets').select().inFilter('child_id', childIds).order('year').order('month');
         // Fetch transactions associated with these kids
         final bucketIds = bucketsRes.map((b) => b['id']).toList();
         if (bucketIds.isNotEmpty) {
@@ -591,32 +590,41 @@ class FamilyNotifier extends _$FamilyNotifier {
 
   Future<void> withdrawFromBucket(String childId, String templateId, double amount, String description) async {
     try {
-      final now = DateTime.now();
-      final month = now.month;
-      final year = now.year;
-
-      final bucket = await _supabase.from('buckets').select('id, cached_balance')
+      final buckets = await _supabase.from('buckets').select('id, cached_balance, month, year')
           .eq('child_id', childId)
           .eq('template_id', templateId)
-          .eq('month', month)
-          .eq('year', year)
-          .maybeSingle();
+          .gt('cached_balance', 0)
+          .order('year')
+          .order('month');
 
-      if (bucket == null) throw Exception('No balance found in this bucket.');
+      if (buckets.isEmpty) throw Exception('No balance found in this bucket.');
       
-      final balance = (bucket['cached_balance'] as num).toDouble();
+      final balance = buckets.fold<double>(
+        0,
+        (sum, bucket) => sum + (bucket['cached_balance'] as num).toDouble(),
+      );
       if (balance < amount) {
         throw Exception('Insufficient balance. Available: \$${balance.toStringAsFixed(2)}');
       }
 
-      await _supabase.from('transactions').insert({
-        'bucket_id': bucket['id'],
-        'child_id': childId,
-        'amount': -amount,
-        'type': 'withdrawal',
-        'description': description.isNotEmpty ? description : 'Withdrawal',
-        'status': 'completed',
-      });
+      var remaining = amount;
+      for (final bucket in buckets) {
+        if (remaining <= 0) break;
+
+        final bucketBalance = (bucket['cached_balance'] as num).toDouble();
+        final withdrawalAmount = bucketBalance >= remaining ? remaining : bucketBalance;
+
+        await _supabase.from('transactions').insert({
+          'bucket_id': bucket['id'],
+          'child_id': childId,
+          'amount': -withdrawalAmount,
+          'type': 'withdrawal',
+          'description': description.isNotEmpty ? description : 'Withdrawal',
+          'status': 'completed',
+        });
+
+        remaining -= withdrawalAmount;
+      }
       
       await fetchFamily();
     } catch (e) {

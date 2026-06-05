@@ -635,17 +635,9 @@ class _ChildCardState extends State<_ChildCard> {
                     itemCount: bucketTemplates.length,
                     itemBuilder: (context, index) {
                       final template = bucketTemplates[index];
-                      final bucket = buckets.firstWhere(
-                        (b) => b.templateId == template.id,
-                        orElse: () => Bucket(
-                          id: '',
-                          childId: child.id,
-                          templateId: template.id,
-                          month: DateTime.now().month,
-                          year: DateTime.now().year,
-                          cachedBalance: 0,
-                        ),
-                      );
+                      final balance = buckets
+                          .where((b) => b.templateId == template.id)
+                          .fold<double>(0, (sum, b) => sum + b.cachedBalance);
                       
                       return Container(
                         margin: const EdgeInsets.only(right: 8),
@@ -664,7 +656,7 @@ class _ChildCardState extends State<_ChildCard> {
                             Text(template.emoji),
                             const SizedBox(width: 4),
                             Text(
-                              '\$${bucket.cachedBalance.toStringAsFixed(0)}',
+                              '\$${balance.toStringAsFixed(0)}',
                               style: TextStyle(
                                 color: template.parsedColor,
                                 fontWeight: FontWeight.bold,
@@ -902,17 +894,9 @@ class _ChildCardState extends State<_ChildCard> {
                             spacing: 8,
                             runSpacing: 8,
                             children: bucketTemplates.map((template) {
-                              final bucket = buckets.firstWhere(
-                                (b) => b.templateId == template.id,
-                                orElse: () => Bucket(
-                                  id: '',
-                                  childId: child.id,
-                                  templateId: template.id,
-                                  month: DateTime.now().month,
-                                  year: DateTime.now().year,
-                                  cachedBalance: 0,
-                                ),
-                              );
+                              final balance = buckets
+                                  .where((b) => b.templateId == template.id)
+                                  .fold<double>(0, (sum, b) => sum + b.cachedBalance);
                               
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -944,7 +928,7 @@ class _ChildCardState extends State<_ChildCard> {
                                           ),
                                         ),
                                         Text(
-                                          '\$${bucket.cachedBalance.toStringAsFixed(2)}',
+                                          '\$${balance.toStringAsFixed(2)}',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: template.parsedColor,

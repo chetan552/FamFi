@@ -39,8 +39,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
   }
 
   double _getBucketBalanceFromState(FamilyState familyState, String childIdParam, String templateIdParam) {
-    final bucket = familyState.buckets.where((b) => b.childId == childIdParam && b.templateId == templateIdParam).firstOrNull;
-    return bucket?.cachedBalance ?? 0.0;
+    return familyState.buckets
+        .where((b) => b.childId == childIdParam && b.templateId == templateIdParam)
+        .fold<double>(0, (sum, b) => sum + b.cachedBalance);
   }
 
   void _handleWithdraw() async {

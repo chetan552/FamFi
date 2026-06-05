@@ -207,10 +207,9 @@ class ChildDashboard extends ConsumerWidget {
                 spacing: 16,
                 runSpacing: 16,
                 children: familyState.bucketTemplates.map((template) {
-                  final bucket = familyState.buckets
+                  final balance = familyState.buckets
                       .where((b) => b.templateId == template.id && b.childId == child.id)
-                      .firstOrNull;
-                  final balance = bucket?.cachedBalance ?? 0.0;
+                      .fold<double>(0, (sum, b) => sum + b.cachedBalance);
 
                   final templateColor = template.parsedColor;
                   return SizedBox(

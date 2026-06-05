@@ -188,8 +188,9 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
                 spacing: 10,
                 runSpacing: 10,
                 children: familyState.bucketTemplates.map((template) {
-                  final bucket = familyState.buckets.where((b) => b.templateId == template.id && b.childId == child.id).firstOrNull;
-                  final balance = bucket?.cachedBalance ?? 0.0;
+                  final balance = familyState.buckets
+                      .where((b) => b.templateId == template.id && b.childId == child.id)
+                      .fold<double>(0, (sum, b) => sum + b.cachedBalance);
                   final color = template.parsedColor;
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
