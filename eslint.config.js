@@ -3,8 +3,21 @@ const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 
 module.exports = defineConfig([
-  expoConfig,
   {
-    ignores: ['dist/*'],
+    ignores: [
+      '.next/**',
+      'dist/**',
+      'client_flutter/**',
+      'legacy-expo-app/**',
+      'supabase/functions/**',
+      'components/ui/**',
+      'hooks/**',
+      'store/**',
+      'lib/supabase.ts',
+      'lib/googleTasks.ts',
+      'lib/googleTasksSync.ts',
+      'lib/notifications.ts',
+    ],
   },
+  expoConfig,
 ]);

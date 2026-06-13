@@ -5,6 +5,7 @@ node_modules/
 
 # Expo
 .expo/
+.next/
 dist/
 web-build/
 expo-env.d.ts
@@ -45,3 +46,8 @@ app-example
 app_audit.md
 walkthrough.md
 walkthrough1.md
+
+# FVM Version Cache
+.fvm/
+
+*.py

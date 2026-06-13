@@ -1,0 +1,2 @@
+-- Intentionally empty.
+-- supabase/config.toml enables seed loading and points at this file.

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(fvm flutter:*)",
+      "Read(//Users/chetanchadalavada/fvm/versions/stable/packages/flutter/lib/src/painting/**)",
+      "Read(//Users/chetanchadalavada/.pub-cache/hosted/pub.dev/**)",
+      "Bash(firebase deploy:*)",
+      "Bash(grep -r \"signInWith\\\\|socialLogin\\\\|google\\\\|facebook\" /Users/chetanchadalavada/Development/github/Fam-Fi-App/client_flutter/lib --include=*.dart)",
+      "Bash(grep -E \"\\\\.dart$\")",
+      "Bash(find /Users/chetanchadalavada/Development/github/Fam-Fi-App/client_flutter -path *ios* -name *.swift -o -path *android* -name *.kt -o -path *android* -name *.java)",
+      "Bash(grep -r \"resetPassword\\\\|resetPasswordForEmail\\\\|signUp\\\\|confirmEmail\\\\|verifyEmail\" /Users/chetanchadalavada/Development/github/Fam-Fi-App/client_flutter/lib --include=*.dart)",
+      "Bash(fvm dart:*)",
+      "Read(//Users/chetanchadalavada/.fvm/versions/3.41.5/packages/flutter/lib/src/material/**)",
+      "Read(//Users/chetanchadalavada/.fvm/versions/stable/packages/flutter/lib/src/material/**)",
+      "Read(//Users/chetanchadalavada/**)",
+      "Read(//Users/chetanchadalavada/Development/github/Fam-Fi-App/**)",
+      "Bash(firebase --version)",
+      "Bash(flutter --version)",
+      "Bash(/Users/chetanchadalavada/fvm/versions/stable/bin/flutter analyze *)",
+      "Bash(grep -E \"\\\\.\\(sql|dart|js|ts\\)$\")",
+      "Bash(git log *)"
+    ]
+  }
+}

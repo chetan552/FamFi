@@ -20,7 +20,7 @@ export function getGoogleClientId(): string {
 }
 
 export function getGoogleClientSecret(): string {
-  return process.env.EXPO_PUBLIC_GOOGLE_CLIENT_SECRET || '';
+  return process.env.GOOGLE_CLIENT_SECRET || '';
 }
 
 /**
