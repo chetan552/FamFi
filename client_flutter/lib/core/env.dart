@@ -1,14 +1,23 @@
 class Env {
-  static const supabaseUrl = 'https://axcdvkshsujorlgpnzcy.supabase.co';
-  static const supabaseAnonKey = 'sb_publishable_UifpOyBAPGUj4Dq01KYFOQ_P26Q880B';
+  static const supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://axcdvkshsujorlgpnzcy.supabase.co',
+  );
+  static const supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'sb_publishable_UifpOyBAPGUj4Dq01KYFOQ_P26Q880B',
+  );
 
-  // Google OAuth client IDs — replace with real values from Google Cloud Console
-  // Web client ID: used for web OAuth redirect and as the serverClientId on native
-  static const googleWebClientId = '1013124299679-sdglqsev6noga6q80ilp01i8vphjfc73.apps.googleusercontent.com';
-  // iOS client ID: used for native Google Sign-In on iOS
-  static const googleIosClientId = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
+  static const googleWebClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '1013124299679-sdglqsev6noga6q80ilp01i8vphjfc73.apps.googleusercontent.com',
+  );
+  static const googleIosClientId = String.fromEnvironment(
+    'GOOGLE_IOS_CLIENT_ID',
+    defaultValue: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
+  );
+  static const googleClientSecret = String.fromEnvironment('GOOGLE_CLIENT_SECRET');
 
-  // OpenAI API key — TODO: move to a secure backend proxy before production
-  static const openAiKey =
-      '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';
+  // Use a backend proxy for production OpenAI calls. This define is only for local/dev builds.
+  static const openAiKey = String.fromEnvironment('OPENAI_API_KEY');
 }

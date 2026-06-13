@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../env.dart';
 import '../../core/models/models.dart';
 
 class GoogleTasksService {
@@ -9,14 +10,13 @@ class GoogleTasksService {
 
   final SupabaseClient supabase;
   
-  // These should ideally be injected from environment variables in your real app setup
-  // matching the EXPO_PUBLIC_... variables in the .env
-  static const String clientId = '83074924250-g7qivb86nqkkjndi5ri1gjsqk4bps4lh.apps.googleusercontent.com';
-  static const String clientSecret = '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';
+  static const String clientId = Env.googleWebClientId;
+  static const String clientSecret = Env.googleClientSecret;
 
   GoogleTasksService(this.supabase);
 
   Future<Map<String, dynamic>> exchangeCodeForTokens(String code, String redirectUri) async {
+    _ensureOAuthConfigured();
     final response = await http.post(
       Uri.parse(_tokenUrl),
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -36,6 +36,7 @@ class GoogleTasksService {
   }
 
   Future<Map<String, dynamic>> refreshAccessToken(String refreshToken) async {
+    _ensureOAuthConfigured();
     final response = await http.post(
       Uri.parse(_tokenUrl),
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -195,5 +196,11 @@ class GoogleTasksService {
     }
 
     return {'synced': synced, 'errors': errors};
+  }
+
+  void _ensureOAuthConfigured() {
+    if (clientId.isEmpty || clientSecret.isEmpty) {
+      throw Exception('Google OAuth is not configured.');
+    }
   }
 }

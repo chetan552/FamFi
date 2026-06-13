@@ -107,6 +107,14 @@ Add relevant emojis to make it feel fun 🎉
         for (final m in _messages) {'role': m.role, 'content': m.content},
       ];
 
+      if (Env.openAiKey.isEmpty) {
+        setState(() => _messages = [
+          ..._messages,
+          const _Msg('assistant', 'Money Mentor is not configured yet. Ask a parent to set it up.'),
+        ]);
+        return;
+      }
+
       final response = await http.post(
         Uri.parse('https://api.openai.com/v1/chat/completions'),
         headers: {

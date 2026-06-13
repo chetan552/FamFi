@@ -10,16 +10,18 @@ export interface Family {
   name: string;
   invite_code: string;
   created_by: string;
+  default_chore_reward: number;
   created_at: string;
 }
 
 export interface User {
   id: string;
-  family_id: string;
+  family_id: string | null;
   auth_id: string | null;
   role: UserRole;
   name: string;
   avatar_emoji: string;
+  expo_push_token: string | null;
   created_at: string;
 }
 
@@ -49,7 +51,7 @@ export interface Transaction {
   child_id: string;
   amount: number;
   type: TransactionType;
-  description: string;
+  description: string | null;
   status: TransactionStatus;
   created_at: string;
 }
@@ -98,5 +100,23 @@ export interface GoogleTaskMapping {
   child_id: string;
   default_reward: number;
   last_synced_at: string | null;
+  created_by_user_id: string | null;
+  created_at: string;
+}
+
+export interface FamilyBucketBalance {
+  child_id: string;
+  template_id: string;
+  balance: number;
+}
+
+export interface FamilyRecentTransaction {
+  id: string;
+  bucket_id: string;
+  child_id: string;
+  amount: number;
+  type: TransactionType;
+  description: string | null;
+  status: TransactionStatus;
   created_at: string;
 }

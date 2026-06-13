@@ -40,6 +40,8 @@ interface FamilyState {
   chores: Chore[];
   buckets: Bucket[];
   allFamilyBuckets: Bucket[];
+  bucketBalances: Record<string, number>;
+  childBalances: Record<string, number>;
   transactions: Transaction[];
   allTransactions: Transaction[];
   interestSettings: InterestSetting[];
@@ -67,6 +69,9 @@ interface FamilyState {
   updateChore: (id: string, updates: { title?: string; value?: number; due_date?: string | null; assigned_to_child_id?: string; is_recurring?: boolean; recurrence_period?: string | null }) => Promise<{ error: string | null }>;
   updateChoreStatus: (id: string, status: ChoreStatus) => Promise<{ error: string | null }>;
   deleteChore: (id: string) => Promise<{ error: string | null }>;
+  deleteMultipleChores: (ids: string[]) => Promise<{ error: string | null }>;
+  clearCompletedChores: () => Promise<{ error: string | null }>;
+  clearAllChores: () => Promise<{ error: string | null }>;
 
   fetchChildBuckets: (childId: string) => Promise<void>;
   fetchAllFamilyBuckets: () => Promise<void>;
@@ -81,6 +86,8 @@ interface FamilyState {
   fetchInterestSettings: () => Promise<void>;
   saveInterestSetting: (templateId: string, ratePercent: number, matchEnabled: boolean) => Promise<{ error: string | null }>;
   processInterest: () => Promise<{ error: string | null; processed: number }>;
+  clearTransactionHistory: () => Promise<{ error: string | null }>;
+  resetInterestSettings: () => Promise<{ error: string | null }>;
 
   // Google Tasks
   checkGoogleConnection: () => Promise<void>;
@@ -102,6 +109,8 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   chores: [],
   buckets: [],
   allFamilyBuckets: [],
+  bucketBalances: {},
+  childBalances: {},
   transactions: [],
   allTransactions: [],
   interestSettings: [],
@@ -447,17 +456,55 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     return { error: null };
   },
 
-  fetchChildBuckets: async (childId: string) => {
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
+  deleteMultipleChores: async (ids) => {
+    if (ids.length === 0) return { error: null };
+    set({ loading: true });
+    const { error } = await supabase.from('chores').delete().in('id', ids);
+    if (error) { set({ loading: false }); return { error: error.message }; }
+    await get().fetchChores();
+    set({ loading: false });
+    return { error: null };
+  },
 
+  clearCompletedChores: async () => {
+    set({ loading: true });
+    if (!get().family) {
+      await get().fetchFamily();
+    }
+    const { family } = get();
+    if (!family) { set({ loading: false }); return { error: 'No family found.' }; }
+    const { error } = await supabase
+      .from('chores')
+      .delete()
+      .eq('family_id', family.id)
+      .in('status', ['done', 'approved']);
+    if (error) { set({ loading: false }); return { error: error.message }; }
+    await get().fetchChores();
+    set({ loading: false });
+    return { error: null };
+  },
+
+  clearAllChores: async () => {
+    set({ loading: true });
+    if (!get().family) {
+      await get().fetchFamily();
+    }
+    const { family } = get();
+    if (!family) { set({ loading: false }); return { error: 'No family found.' }; }
+    const { error } = await supabase.from('chores').delete().eq('family_id', family.id);
+    if (error) { set({ loading: false }); return { error: error.message }; }
+    await get().fetchChores();
+    set({ loading: false });
+    return { error: null };
+  },
+
+  fetchChildBuckets: async (childId: string) => {
     const { data, error } = await supabase
       .from('buckets')
       .select('*')
       .eq('child_id', childId)
-      .eq('month', month)
-      .eq('year', year);
+      .order('year', { ascending: true })
+      .order('month', { ascending: true });
 
     if (!error && data) {
       set({ buckets: data as Bucket[] });
@@ -468,21 +515,31 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     const { children } = get();
     if (children.length === 0) return;
 
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
-
     const childIds = children.map(c => c.id);
 
     const { data, error } = await supabase
       .from('buckets')
       .select('*')
       .in('child_id', childIds)
-      .eq('month', month)
-      .eq('year', year);
+      .order('year', { ascending: true })
+      .order('month', { ascending: true });
 
     if (!error && data) {
       set({ allFamilyBuckets: data as Bucket[] });
+    }
+
+    const { data: balanceData, error: balanceError } = await supabase.rpc('get_family_bucket_balances');
+    if (!balanceError && balanceData) {
+      const bucketBalances: Record<string, number> = {};
+      const childBalances: Record<string, number> = {};
+
+      for (const row of balanceData as Array<{ child_id: string; template_id: string; balance: number | string }>) {
+        const balance = Number(row.balance) || 0;
+        bucketBalances[`${row.child_id}:${row.template_id}`] = balance;
+        childBalances[row.child_id] = (childBalances[row.child_id] ?? 0) + balance;
+      }
+
+      set({ bucketBalances, childBalances });
     }
   },
 
@@ -553,38 +610,41 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   withdrawFromBucket: async (childId, templateId, amount, description) => {
     set({ loading: true });
     try {
-      // Find the bucket — do NOT create one if it doesn't exist
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const year = now.getFullYear();
-
-      const { data: bucket, error: bucketErr } = await supabase
+      const { data: buckets, error: bucketErr } = await supabase
         .from('buckets')
-        .select('id, cached_balance')
+        .select('id, cached_balance, month, year')
         .eq('child_id', childId)
         .eq('template_id', templateId)
-        .eq('month', month)
-        .eq('year', year)
-        .maybeSingle();
+        .gt('cached_balance', 0)
+        .order('year', { ascending: true })
+        .order('month', { ascending: true });
 
       if (bucketErr) throw new Error(bucketErr.message);
-      if (!bucket) throw new Error('No balance found in this bucket.');
-      if (bucket.cached_balance < amount) {
-        throw new Error(`Insufficient balance. Available: $${bucket.cached_balance.toFixed(2)}`);
+      if (!buckets || buckets.length === 0) throw new Error('No balance found in this bucket.');
+
+      const available = buckets.reduce((sum, bucket) => sum + (bucket.cached_balance || 0), 0);
+      if (available < amount) {
+        throw new Error(`Insufficient balance. Available: $${available.toFixed(2)}`);
       }
 
-      // Insert a negative transaction — DB trigger decrements cached_balance
-      const { error } = await supabase
-        .from('transactions')
-        .insert({
+      let remaining = amount;
+      const withdrawals = [];
+      for (const bucket of buckets) {
+        if (remaining <= 0) break;
+        const bucketBalance = bucket.cached_balance || 0;
+        const withdrawalAmount = Math.min(bucketBalance, remaining);
+        withdrawals.push({
           bucket_id: bucket.id,
           child_id: childId,
-          amount: -amount,
+          amount: -withdrawalAmount,
           type: 'withdrawal',
           description: description || 'Withdrawal',
           status: 'completed',
         });
+        remaining -= withdrawalAmount;
+      }
 
+      const { error } = await supabase.from('transactions').insert(withdrawals);
       if (error) throw error;
 
       await get().fetchAllFamilyBuckets();
@@ -727,8 +787,67 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     }
   },
 
+  clearTransactionHistory: async () => {
+    set({ loading: true });
+
+    try {
+      if (!get().family || get().children.length === 0) {
+        await get().fetchFamily();
+      }
+      const { children } = get();
+
+      if (children.length === 0) {
+        set({ loading: false });
+        return { error: null };
+      }
+
+      const { data: buckets, error: bucketError } = await supabase
+        .from('buckets')
+        .select('id')
+        .in('child_id', children.map((child) => child.id));
+      if (bucketError) throw bucketError;
+
+      const bucketIds = (buckets ?? []).map((bucket) => bucket.id);
+      if (bucketIds.length > 0) {
+        const { error: transactionError } = await supabase
+          .from('transactions')
+          .delete()
+          .in('bucket_id', bucketIds);
+        if (transactionError) throw transactionError;
+
+        const { error: balanceError } = await supabase
+          .from('buckets')
+          .update({ cached_balance: 0 })
+          .in('id', bucketIds);
+        if (balanceError) throw balanceError;
+      }
+
+      await get().fetchAllFamilyBuckets();
+      await get().fetchAllFamilyTransactions();
+      set({ loading: false });
+      return { error: null };
+    } catch (e: any) {
+      set({ loading: false });
+      return { error: e.message };
+    }
+  },
+
+  resetInterestSettings: async () => {
+    set({ loading: true });
+    if (!get().family) {
+      await get().fetchFamily();
+    }
+    const { family } = get();
+    if (!family) { set({ loading: false }); return { error: 'No family found.' }; }
+    const { error } = await supabase.from('interest_settings').delete().eq('family_id', family.id);
+    if (error) { set({ loading: false }); return { error: error.message }; }
+    await get().fetchInterestSettings();
+    set({ loading: false });
+    return { error: null };
+  },
+
   reset: () => {
-    set({ family: null, children: [], members: [], bucketTemplates: [], chores: [], buckets: [], allFamilyBuckets: [], transactions: [], allTransactions: [], interestSettings: [], googleMappings: [], googleConnected: false, loading: false });
+    set({ family: null, children: [], members: [], bucketTemplates: [], chores: [], buckets: [], allFamilyBuckets: [], bucketBalances: {}, childBalances: {}, transactions: [], allTransactions: [], interestSettings: [], googleMappings: [], googleConnected: false, loading: false });
   },
 
   // ─── Google Tasks ─────────────────────────────────────────────

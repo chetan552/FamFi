@@ -9,6 +9,12 @@ interface SettingsState {
   setThemeMode: (mode: ThemeMode) => void;
   hasSeenOnboarding: boolean;
   setHasSeenOnboarding: (value: boolean) => void;
+  setupChecklistDismissed: boolean;
+  setSetupChecklistDismissed: (value: boolean) => void;
+  defaultChoreAmount: number;
+  setDefaultChoreAmount: (amount: number) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (value: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -18,6 +24,12 @@ export const useSettingsStore = create<SettingsState>()(
       setThemeMode: (mode) => set({ themeMode: mode }),
       hasSeenOnboarding: false,
       setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
+      setupChecklistDismissed: false,
+      setSetupChecklistDismissed: (value) => set({ setupChecklistDismissed: value }),
+      defaultChoreAmount: 5,
+      setDefaultChoreAmount: (amount) => set({ defaultChoreAmount: amount }),
+      sidebarCollapsed: false,
+      setSidebarCollapsed: (value) => set({ sidebarCollapsed: value }),
     }),
     {
       name: 'fam-fi-settings',

@@ -1,14 +1,21 @@
 {
   "name": "fam-fi-app",
-  "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "dev": "next dev -p 8081",
+    "build": "next build",
+    "start": "next start -p 8081",
     "reset-project": "node ./scripts/reset-project.js",
+    "supabase:start": "supabase start",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:push": "supabase db push",
+    "supabase:functions:deploy": "supabase functions deploy sync-google-tasks",
+    "expo": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
+    "web": "next dev -p 8081",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -35,6 +42,7 @@
     "expo-symbols": "~1.0.8",
     "expo-system-ui": "~6.0.9",
     "expo-web-browser": "~15.0.10",
+    "next": "^16.0.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
