@@ -56,3 +56,5 @@ walkthrough1.md
 .fvm/
 
 *.py
+legacy-expo-app/
+.vercel
