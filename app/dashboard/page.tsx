@@ -270,6 +270,7 @@ export default function DashboardPage() {
           <article className="card hero-card">
             <p className="eyebrow">Family Piggy Bank Savings</p>
             <div className="metric">${totals.familyTotal.toFixed(2)}</div>
+            <p className="metric-label">Total Family Savings</p>
             <div className="grid stats-grid dashboard-stats">
               <div className="stat-card">
                 <strong>{data.children.length}</strong>
