@@ -210,7 +210,7 @@ export default function DashboardPage() {
       enabled: true,
     },
     {
-      label: "Task Board",
+      label: "Chore Board",
       icon: "📋",
       href: "/family-tasks-dashboard",
       detail: "Review every child",

@@ -10,7 +10,7 @@ const navItems = [
   { href: "/dashboard", label: "Home", icon: "home" },
   { href: "/children", label: "Children", icon: "users" },
   { href: "/bucket-templates", label: "Buckets", icon: "wallet" },
-  { href: "/family-tasks-dashboard", label: "Task Board", icon: "board" },
+  { href: "/family-tasks-dashboard", label: "Chore Board", icon: "board" },
   { href: "/chores", label: "Chores", icon: "check" },
   { href: "/payday", label: "Payday", icon: "cash" },
   { href: "/activity", label: "Activity", icon: "activity" },

@@ -17,7 +17,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/(parent)/dashboard', match: '/dashboard', icon: 'view-dashboard' },
   { label: 'Chores', href: '/(parent)/chores', match: '/chores', icon: 'clipboard-check' },
-  { label: 'Task Board', href: '/(parent)/family-tasks-dashboard', match: '/family-tasks-dashboard', icon: 'view-dashboard-variant' },
+  { label: 'Chore Board', href: '/(parent)/family-tasks-dashboard', match: '/family-tasks-dashboard', icon: 'view-dashboard-variant' },
   { label: 'Payday', href: '/(parent)/payday', match: '/payday', icon: 'cash-multiple' },
   { label: 'Activity', href: '/(parent)/activity', match: '/activity', icon: 'history' },
   { label: 'Settings', href: '/(parent)/settings', match: '/settings', icon: 'cog' },
