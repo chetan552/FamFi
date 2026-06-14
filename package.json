@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "next dev -p 8081",
     "build": "next build",
-    "start": "next start -p 8081",
+    "start": "next start",
     "reset-project": "node ./scripts/reset-project.js",
     "supabase:start": "supabase start",
     "supabase:status": "supabase status",
