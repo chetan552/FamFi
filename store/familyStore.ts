@@ -176,10 +176,9 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       return { error: error.message };
     }
 
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ family_id: (data as Family).id })
-      .eq('id', profile.id);
+    const { error: updateError } = await supabase.rpc('attach_created_family', {
+      p_family_id: (data as Family).id,
+    });
 
     if (updateError) {
       set({ loading: false });
@@ -199,19 +198,9 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       return { error: 'Not authenticated' };
     }
 
-    const { data: familyData, error: familyError } = await supabase
-      .from('families')
-      .select('id')
-      .eq('invite_code', inviteCode.toUpperCase())
-      .maybeSingle();
-
-    if (familyError) { set({ loading: false }); return { error: familyError.message }; }
-    if (!familyData) { set({ loading: false }); return { error: 'Invalid invite code. Please check and try again.' }; }
-
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ family_id: familyData.id })
-      .eq('id', profile.id);
+    const { error: updateError } = await supabase.rpc('join_family_by_invite', {
+      p_invite_code: inviteCode.toUpperCase(),
+    });
 
     if (updateError) { set({ loading: false }); return { error: 'Found family but failed to join. Please try again.' }; }
 

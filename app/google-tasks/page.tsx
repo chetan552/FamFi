@@ -209,6 +209,38 @@ export default function GoogleTasksPage() {
     await refresh();
   }
 
+  async function syncNow() {
+    if (!data) return;
+
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("You need to log in again before syncing Google Tasks.");
+
+      const response = await fetch("/api/google-tasks/sync", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Google Tasks sync failed.");
+
+      const details = [
+        `${payload.synced ?? 0} chore${payload.synced === 1 ? "" : "s"} synced`,
+        payload.deleted ? `${payload.deleted} removed` : null,
+      ].filter(Boolean).join(", ");
+      setNotice(payload.errors?.length ? `Sync finished with warnings: ${payload.errors.join("; ")}` : `Sync complete: ${details}.`);
+      await refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Google Tasks sync failed.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function removeMapping(mapping: GoogleTaskMapping) {
     const confirmed = window.confirm(`Stop syncing "${mapping.google_tasklist_title}"?`);
     if (!confirmed) return;
@@ -295,7 +327,12 @@ export default function GoogleTasksPage() {
           </p>
         </div>
         {data.connected ? (
-          <button className="button danger-button" onClick={disconnectGoogle} disabled={saving}>Disconnect</button>
+          <div className="inline-actions">
+            <button className="button" type="button" onClick={syncNow} disabled={saving || data.mappings.length === 0}>
+              {saving ? "Syncing..." : "Sync Now"}
+            </button>
+            <button className="button danger-button" onClick={disconnectGoogle} disabled={saving}>Disconnect</button>
+          </div>
         ) : (
           <button className="button" type="button" onClick={connectGoogle} disabled={saving}>{saving ? "Connecting..." : "Connect"}</button>
         )}

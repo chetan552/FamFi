@@ -6,6 +6,7 @@ module.exports = defineConfig([
   {
     ignores: [
       '.next/**',
+      '.vercel/**',
       'dist/**',
       'client_flutter/**',
       'legacy-expo-app/**',

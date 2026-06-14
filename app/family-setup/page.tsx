@@ -50,10 +50,9 @@ export default function FamilySetupPage() {
       return setError(createError.message);
     }
 
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ family_id: family.id })
-      .eq("id", loaded.profile.id);
+    const { error: updateError } = await supabase.rpc("attach_created_family", {
+      p_family_id: family.id,
+    });
     setSaving(false);
 
     if (updateError) return setError(updateError.message);
@@ -77,26 +76,9 @@ export default function FamilySetupPage() {
       return setError(loaded.error);
     }
 
-    const { data: family, error: familyError } = await supabase
-      .from("families")
-      .select("id")
-      .eq("invite_code", normalizedCode)
-      .maybeSingle();
-
-    if (familyError) {
-      setSaving(false);
-      return setError(familyError.message);
-    }
-
-    if (!family) {
-      setSaving(false);
-      return setError("No family was found for that invite code.");
-    }
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ family_id: family.id })
-      .eq("id", loaded.profile.id);
+    const { error: updateError } = await supabase.rpc("join_family_by_invite", {
+      p_invite_code: normalizedCode,
+    });
     setSaving(false);
 
     if (updateError) return setError(updateError.message);
