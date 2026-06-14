@@ -3,6 +3,11 @@
 # dependencies
 node_modules/
 
+.claude/
+.vscode
+client_flutter/
+.fvmrc
+
 # Expo
 .expo/
 .next/
