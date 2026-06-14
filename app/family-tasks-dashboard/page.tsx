@@ -57,7 +57,7 @@ export default function FamilyTasksDashboardPage() {
           ["approved", "Approved"],
           ["paid", "Paid"],
         ].map(([status, label]) => (
-          <article className="card" key={status}>
+          <article className="card kanban-column" key={status}>
             <h2 style={{ marginTop: 0 }}>{label}</h2>
             <div className="task-list">
               {chores

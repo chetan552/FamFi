@@ -452,6 +452,13 @@ button {
   padding: 24px;
 }
 
+.kanban-column {
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .hero-card {
   background: var(--primary);
   color: #07282e;
