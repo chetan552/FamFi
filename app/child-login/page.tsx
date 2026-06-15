@@ -45,6 +45,8 @@ export default function ChildLoginPage() {
     setError(null);
     setLoading(true);
 
+    await supabase.auth.signOut();
+
     const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
     if (authError || !authData.user) {
       setLoading(false);
@@ -60,7 +62,7 @@ export default function ChildLoginPage() {
     if (linkError) {
       await supabase.auth.signOut();
       setLoading(false);
-      setError(linkError.message.includes("already linked") ? "Child account cannot be linked." : linkError.message);
+      setError(linkError.message);
       return;
     }
 
